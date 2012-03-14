@@ -744,9 +744,19 @@ prompt_and_wait() {
                 show_advanced_menu();
                 break;
                 
-            case ITEM_POWEROFF:
-                poweroff = 1;
-                return;
+            case ITEM_DISABLE_MN_SETTINGS:
+                if(0 == __system("touch /cache/midnight_block")){
+                    ui_print("\nBlocker file created, MidnightControl\n");
+                    ui_print("settings will not be applied at next boot.\n");
+                }else{
+                    ui_print("\nFailed to create /system/etc/midnight_block,\n");
+                    ui_print("sorry.\n");
+                }
+                break;                
+                
+            //case ITEM_POWEROFF:
+            //    poweroff = 1;
+            //    return;
         }
     }
 }
