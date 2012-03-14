@@ -755,29 +755,33 @@ prompt_and_wait() {
                 break;                
                 
             case ITEM_DELETE_NSTOOLS_SETTINGS:
-                if (0 == ensure_path_mounted("/data")){
-                    ensure_path_mounted("/datadata"); // /data/data possible symlink to /datadata
-                    if(0 == __system("rm /data/data/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml")){
-                        ui_print("\nNSTools settings deleted.\n");
+                if (confirm_selection("Confirm deleting NSTools settings?", "Yes - delete NSTools settings")){
+                    if (0 == ensure_path_mounted("/data")){
+                        ensure_path_mounted("/datadata"); // /data/data possible symlink to /datadata
+                        if(0 == __system("rm /data/data/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml")){
+                            ui_print("\nNSTools settings deleted.\n");
+                        }else{
+                            ui_print("\nDeleting NSTools settings failed, sorry.\n");
+                        }                
                     }else{
-                        ui_print("\nDeleting NSTools settings failed, sorry.\n");
-                    }                
-                }else{
-                    ui_print("\nError mounting /data, exiting...!\n");
-                    break;
+                        ui_print("\nError mounting /data, exiting...!\n");
+                        break;
+                    }
                 }
                 break;    
                             
             case ITEM_DELETE_INITD:
-                if (0 == ensure_path_mounted("/system")){
-                    if(0 == __system("rm -r /system/etc/init.d/*")){
-                        ui_print("\n/system/etc/init.d cleared.\n");
+                if (confirm_selection("Confirm clearing init.d?", "Yes - completely clear init.d")){
+                    if (0 == ensure_path_mounted("/system")){
+                        if(0 == __system("rm -r /system/etc/init.d/*")){
+                            ui_print("\n/system/etc/init.d cleared.\n");
+                        }else{
+                            ui_print("\nClearing init.d failed, sorry.\n");
+                        }                
                     }else{
-                        ui_print("\nClearing init.d failed, sorry.\n");
-                    }                
-                }else{
-                    ui_print("\nError mounting /system, exiting...!\n");
-                    break;
+                        ui_print("\nError mounting /system, exiting...!\n");
+                        break;
+                    }
                 }
                 break;    
 
