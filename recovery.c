@@ -1,4 +1,4 @@
-/*
+/*k
  * Copyright (C) 2007 The Android Open Source Project
  * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
  *
@@ -431,10 +431,11 @@ prepend_title(char** headers) {
 int
 get_menu_selection(char** headers, char** items, int menu_only,
                    int initial_selection) {
+    //printf("getting a menu selection\n");
     // throw away keys pressed previously, so user doesn't
     // accidentally trigger menu items.
     ui_clear_key_queue();
-    
+
     ++ui_menu_level;
     int item_count = ui_start_menu(headers, items, initial_selection);
     int selected = initial_selection;
@@ -493,9 +494,10 @@ get_menu_selection(char** headers, char** items, int menu_only,
             chosen_item = action;
         }
 
+        
         if (abs(selected - old_selected) > 1) {
             wrap_count++;
-            if (wrap_count == 3) {
+            if (wrap_count == 300) {
                 wrap_count = 0;
                 if (ui_get_showing_back_button()) {
                     ui_print("Back menu button disabled.\n");
@@ -696,7 +698,7 @@ prompt_and_wait() {
     for (;;) {
         finish_recovery(NULL);
         ui_reset_progress();
-        
+
         ui_menu_level = -1;
         allow_display_toggle = 1;
         int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
@@ -804,7 +806,7 @@ main(int argc, char **argv) {
 
     device_ui_init(&ui_parameters);
     ui_init();
-    ui_print(EXPAND(RECOVERY_VERSION)"\n");
+    //ui_print(EXPAND(RECOVERY_VERSION)"\n");
     load_volume_table();
     process_volumes();
     LOGI("Processing arguments.\n");

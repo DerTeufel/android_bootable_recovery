@@ -18,6 +18,7 @@ int device_toggle_display(volatile char* key_pressed, int key_code) {
 }
 
 int device_handle_key(int key_code, int visible) {
+    printf("handling a key! %i\n", key_code);
     if (visible) {
         switch (key_code) {
             case KEY_CAPSLOCK:
@@ -29,14 +30,19 @@ int device_handle_key(int key_code, int visible) {
             case KEY_LEFTSHIFT:
             case KEY_UP:
             case KEY_VOLUMEUP:
-            case KEY_HOME:
+           // case KEY_HOME:
                 return HIGHLIGHT_UP;
+            case KEY_HOME:
+				return SELECT_ITEM;
+			case KEY_BACK:
+				return GO_BACK;
 
             case KEY_POWER:
                 if (ui_get_showing_back_button()) {
                     return SELECT_ITEM;
                 }
-                if (!get_allow_toggle_display() && ui_menu_level > 0) {
+                //if (!get_allow_toggle_display() && ui_menu_level > 0) {
+				if (!get_allow_toggle_display()) {
                     return GO_BACK;
                 }
                 break;
@@ -46,21 +52,19 @@ int device_handle_key(int key_code, int visible) {
             case KEY_CAMERA:
             case KEY_F21:
             case KEY_SEND:
-                return SELECT_ITEM;
-            
             case KEY_END:
             case KEY_BACKSPACE:
             case KEY_SEARCH:
-                if (ui_get_showing_back_button()) {
-                    return SELECT_ITEM;
-                }
-                if (!get_allow_toggle_display() && ui_menu_level > 0) {
-                    return GO_BACK;
-                }
-            case KEY_BACK:
-                if (ui_menu_level > 0) {
-                    return GO_BACK;
-                }
+              //  if (ui_get_showing_back_button()) {
+              //      return SELECT_ITEM;
+               // }
+              //  if (!get_allow_toggle_display() && ui_menu_level > 0) {
+               //     return GO_BACK;
+               // }
+            //case KEY_BACK:
+                //if (ui_menu_level > 0) {
+                    return NO_ACTION;
+               // }
         }
     }
 
