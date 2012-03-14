@@ -80,6 +80,8 @@ int device_wipe_data();
 
 // used by Midnight-ICS kernel
 #define ITEM_DISABLE_MN_SETTINGS  7
+#define ITEM_DELETE_NSTOOLS_SETTINGS 8
+#define ITEM_DELETE_INITD 9
 
 // unused in cwr
 #define ITEM_APPLY_CACHE     4
