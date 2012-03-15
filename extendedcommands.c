@@ -1075,6 +1075,81 @@ void show_advanced_menu()
     }
 }
 
+
+
+void show_devil_menu()
+{
+    ensure_path_mounted("/system");
+    ensure_path_mounted("/data");    
+    
+
+    static char* headers[] = {  "Devil Kernel - Advanced Extra Menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Clean init.d",
+							"Delete NSTools settings",
+							"Delete NSTools profiles",
+							"Restore NSTools profiles",
+    						NULL
+    };
+
+    for (;;)
+    {
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        {
+		    case 0:
+		    {
+				if (confirm_selection( "Confirm clearing?", "Yes - Clear init.d")) {
+      				ensure_path_mounted("/system");
+      				ui_print("Clearing init.d...\n");
+      				__system("mv /system/etc/init.d/* /system/etc/init.d/backup/");
+      				ui_print("Done!\n");
+				ui_print("All files moved to /system/etc/init.d/backup\n");
+    			}
+               break;
+	    	}
+			case 1:
+			{
+				if (confirm_selection( "Confirm clearing?", "Yes - Delete NSTools settings")) {
+      				ensure_path_mounted("/data");
+				ensure_path_mounted("/datadata");
+      				ui_print("Clearing init.d...\n");
+      				__system("rm /data/data/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml");
+      				ui_print("Done!\n");
+    			}
+               break;
+	    	}
+			case 2:
+			{
+				if (confirm_selection( "Confirm clearing?", "Yes - Delete NSTools settings")) {
+      				ensure_path_mounted("/data");
+				ensure_path_mounted("/datadata");
+      				ui_print("Moving NSTools settings to Backup folder...\n");
+      				__system("mv /data/data/mobi.cyann.nstools/settings/* /data/data/mobi.cyann.nstools/backup/");
+      				ui_print("Done!\n");
+    			}
+               break;
+	    	}
+			case 3:
+			{
+				if (confirm_selection( "Confirm restoring?", "Yes - Restore NSTools settings")) {
+      				ensure_path_mounted("/data");
+				ensure_path_mounted("/datadata");
+      				ui_print("Moving NSTools settings back...\n");
+      				__system("mv /data/data/mobi.cyann.nstools/backup/* /data/data/mobi.cyann.nstools/settings/");
+      				ui_print("Done!\n");
+    			}
+               break;
+	    	}
+    //ensure_path_unmounted("/system");
+    //ensure_path_unmounted("/data");    
+}
+
 void write_fstab_root(char *path, FILE *file)
 {
     Volume *vol = volume_for_path(path);

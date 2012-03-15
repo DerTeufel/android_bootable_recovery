@@ -78,17 +78,13 @@ int device_wipe_data();
 #define ITEM_WIPE_DATA       2
 #define ITEM_WIPE_CACHE      3
 
-// used by Midnight-ICS kernel
-#define ITEM_DISABLE_MN_SETTINGS  7
-#define ITEM_DELETE_NSTOOLS_SETTINGS 8
-#define ITEM_DELETE_INITD 9
-
 // unused in cwr
 #define ITEM_APPLY_CACHE     4
 #define ITEM_NANDROID        4
 #define ITEM_PARTITION       5
 #define ITEM_ADVANCED        6
-#define ITEM_POWEROFF        7
+#define ITEM_DEVIL           7
+#define ITEM_POWEROFF        8
 
 
 // Header text to display above the main menu.

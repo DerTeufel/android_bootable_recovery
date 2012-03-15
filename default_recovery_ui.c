@@ -29,9 +29,7 @@ char* MENU_ITEMS[] = { "reboot system now",
                        "backup and restore",
                        "mounts and storage",
                        "advanced",
-                       "deactivate MidnightControl settings ONCE",
-                       "delete NStools settings",
-                       "delete init.d contents",
+                       "Devil",
                        NULL };
 
 void device_ui_init(UIParameters* ui_parameters) {
