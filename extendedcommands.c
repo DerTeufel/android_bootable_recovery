@@ -971,6 +971,8 @@ void show_advanced_menu()
                             "Partition Internal SD Card",
                             "Partition External SD Card",
                             "Fix Permissions",
+							"Clear init.d directory",
+							"Clear NSTools settings",
                             NULL
     };
 
@@ -1129,6 +1131,30 @@ void show_advanced_menu()
                 ui_print("Done!\n");
                 break;
             }
+			case 9:
+            {
+                if (confirm_selection( "Confirm clearing?", "Yes - Clear init.d")) 
+				{
+					ensure_path_mounted("/system");
+					ui_print("Clearing init.d...\n");
+					__system("rm -r /system/etc/init.d/*");
+					ui_print("Done!\n");
+				}
+                break;
+            }            
+            case 10:
+            {
+                if (confirm_selection( "Confirm clearing?", "Yes - Clear NSTools settings")) 
+				{
+					ensure_path_mounted("/data");
+					ensure_path_mounted("/datadata");
+					ui_print("Clearing NSTools settings...\n");
+					__system("rm /data/data/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml");
+					__system("rm /datadata/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml");
+					ui_print("Done!\n");
+				}
+                break;
+            }       
         }
     }
 }
