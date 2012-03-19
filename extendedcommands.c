@@ -1147,9 +1147,9 @@ void show_devil_menu()
 			    "Delete NSTools Settings",
 			    "Delete NSTools default profile",
 			    "Restore NSTools default profile",
-			    "Activate SMOOTH Profile"
-			    "Activate NORMAL Profile" 
-			    "Activate POWERSAVE Profile" 	 
+			    "Activate SMOOTH Profile",
+			    "Activate NORMAL Profile",
+			    "Activate POWERSAVE Profile", 	 
                             					NULL
     };
 
