@@ -1145,10 +1145,9 @@ void show_devil_menu()
 
     static char* list[] = { "Clear init.d",
 			    "Delete NSTools Settings",
-			    "Delete NSTools profiles",
-			    "Restore NSTools profiles",
-                            
-    						NULL
+			    "Delete NSTools default profile",
+			    "Restore NSTools default profile",
+                            					NULL
     };
 
     for (;;)
@@ -1164,7 +1163,7 @@ void show_devil_menu()
 				{
 					ensure_path_mounted("/system");
 					ui_print("Clearing init.d...\n");
-					__system("rm -r /system/etc/init.d/*");
+					__system("rm /system/etc/init.d/*");
 					ui_print("Done!\n");
 				}
                 break;
