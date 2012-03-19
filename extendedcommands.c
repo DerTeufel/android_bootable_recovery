@@ -1145,6 +1145,8 @@ void show_devil_menu()
 
     static char* list[] = { "Clear init.d",
 			    "Delete NSTools Settings",
+			    "Delete NSTools profiles",
+			    "Restore NSTools profiles",
                             
     						NULL
     };
@@ -1181,6 +1183,32 @@ void show_devil_menu()
 				}
                 break;
             }   
+
+		case 2:
+            {
+                if (confirm_selection( "Remove default profile?", "Yes - Remove NSTools profile")) 
+      			{
+              		ensure_path_mounted("/data");
+        		ensure_path_mounted("/datadata");
+              		ui_print("Moving NSTools default profile to Backup folder...\n");
+              		__system("mv /data/data/mobi.cyann.nstools/settings/default /data/data/mobi.cyann.nstools/backup/");
+              		ui_print("Done!\n");
+          		}
+               break;
+            }
+
+		case 3:
+            {
+                if (confirm_selection( "Restore default profile?", "Yes - Restore NSTools profile")) 
+      			{
+              		ensure_path_mounted("/data");
+        		ensure_path_mounted("/datadata");
+              		ui_print("Moving NSTools default profile back...\n");
+              		__system("mv /data/data/mobi.cyann.nstools/backup/default /data/data/mobi.cyann.nstools/settings/default/");
+              		ui_print("Done!\n");
+          		}
+               break;
+            }
 
         }
     }
