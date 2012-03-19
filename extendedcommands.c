@@ -1147,6 +1147,9 @@ void show_devil_menu()
 			    "Delete NSTools Settings",
 			    "Delete NSTools default profile",
 			    "Restore NSTools default profile",
+			    "Activate SMOOTH Profile"
+			    "Activate NORMAL Profile" 
+			    "Activate POWERSAVE Profile" 	 
                             					NULL
     };
 
@@ -1205,6 +1208,36 @@ void show_devil_menu()
               		ui_print("Moving NSTools default profile back...\n");
               		__system("mv /data/data/mobi.cyann.nstools/backup/default /data/data/mobi.cyann.nstools/settings/default/");
               		ui_print("Done!\n");
+          		}
+               break;
+            }
+
+		case 4:
+            {
+                if (confirm_selection( "Load SMOOTH profile?", "Yes - Load SMOOTH")) 
+      			{
+		    	__system("echo smooth > /system/etc/devil/profile");
+    			ui_print("SMOOTH profile activated\n");
+          		}
+               break;
+            }
+
+		case 5:
+            {
+                if (confirm_selection( "Load NORMAL profile?", "Yes - Load NORMAL")) 
+      			{
+		    	__system("echo normal > /system/etc/devil/profile");
+    			ui_print("NORMAL profile activated\n");
+          		}
+               break;
+            }
+
+		case 6:
+            {
+                if (confirm_selection( "Load POWERSAVE profile?", "Yes - Load POWERSAVE")) 
+      			{
+		    	__system("echo powersave > /system/etc/devil/profile");
+    			ui_print("POWERSAVE profile activated\n");
           		}
                break;
             }
