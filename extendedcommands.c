@@ -1194,6 +1194,7 @@ void show_devil_menu()
         		ensure_path_mounted("/datadata");
               		ui_print("Moving NSTools default profile to Backup folder...\n");
               		__system("mv /data/data/mobi.cyann.nstools/settings/default /data/local/mobi.cyann.nstools/backup/");
+			__system("mv /datadata/mobi.cyann.nstools/settings/default /data/local/mobi.cyann.nstools/backup/");
               		ui_print("Done!\n");
           		}
                break;
