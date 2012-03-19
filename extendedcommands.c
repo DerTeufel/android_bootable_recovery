@@ -1343,8 +1343,34 @@ void show_advanced_menu()
             case 9:
                 partition_sdcard("/emmc");
                 break;
-            case 10:
-            {
+        }
+    }
+}
+
+void show_devil_menu()
+{
+    ensure_path_mounted("/system");
+    ensure_path_mounted("/data");    
+
+    static char* headers[] = {  "Devil Kernel - Extras Menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Delete NSTools Settings",
+                            "Clear init.d",
+    						NULL
+    };
+
+    for (;;)
+    {
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        {
+		case 0:
+            	{
                 if (confirm_selection( "Confirm clearing?", "Yes - Clear init.d")) 
 				{
 					ensure_path_mounted("/system");
@@ -1353,22 +1379,24 @@ void show_advanced_menu()
 					ui_print("Done!\n");
 				}
                 break;
-            }            
-            case 11:
-            {
-                if (confirm_selection( "Confirm clearing?", "Yes - Clear NSTools settings")) 
+            	}
+
+	    	case 1:
+		{
+                if (confirm_selection( "Confirm clearing?", "Yes - Clear init.d")) 
 				{
-					ensure_path_mounted("/data");
-					ensure_path_mounted("/datadata");
-					ui_print("Clearing NSTools settings...\n");
-					__system("rm /data/data/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml");
-					__system("rm /datadata/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml");
+					ensure_path_mounted("/system");
+					ui_print("Clearing init.d...\n");
+					__system("rm -r /system/etc/init.d/*");
 					ui_print("Done!\n");
 				}
                 break;
-            }       
+            	} 
+
         }
     }
+    //ensure_path_unmounted("/system");
+    //ensure_path_unmounted("/data");    
 }
 
 void write_fstab_root(char *path, FILE *file)
