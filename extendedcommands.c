@@ -1151,7 +1151,8 @@ void show_devil_menu()
 			    "Restore NSTools default profile",
 			    "Activate SMOOTH Profile",
 			    "Activate NORMAL Profile",
-			    "Activate POWERSAVE Profile", 	 
+			    "Activate POWERSAVE Profile",
+			    "Copy last_kmsg to Sd Card" 	 
                             					NULL
     };
 
@@ -1271,6 +1272,26 @@ void show_devil_menu()
           		}
                break;
             }
+
+		case 8:
+            	{
+                if (confirm_selection( "Copy last_kmsg to Sd Card?", "Yes - Copy last_kmsg")) 
+		  {
+          		if ( 0 == ensure_path_mounted("/sdcard") )
+          		{          
+	    		__system("mkdir /sdcard/devil");	
+            		__system("cp /proc/last_kmsg /sdcard/devil/");
+            		__system("cp /proc/cmdline /sdcard/devil/");
+           		ui_print("last_kmsg and /proc/cmdline copied to /sdcard/devil\n");
+           		ensure_path_unmounted("/sdcard");
+          		}
+         		else
+         		{
+           		ui_print("Unable to mount /sdcard - nothing done!");
+         		}
+		  }
+                break;
+            	}
 
         }
     }
