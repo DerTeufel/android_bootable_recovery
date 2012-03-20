@@ -1,4 +1,4 @@
-#include <ctype.h>
+de#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
@@ -1145,8 +1145,9 @@ void show_devil_menu()
     };
 
     static char* list[] = { "Clear init.d",
+		            "Backup init.d to Sd Card",
 			    "Delete NSTools Settings",
-			    "Delete NSTools default profile",
+			    "Remove NSTools default profile",
 			    "Restore NSTools default profile",
 			    "Activate SMOOTH Profile",
 			    "Activate NORMAL Profile",
@@ -1173,7 +1174,27 @@ void show_devil_menu()
                 break;
             	}
 
-	    	case 1:
+		case 1:
+            	{
+                if (confirm_selection( "Backup init.d to Sd Card?", "Yes - Backup init.d")) 
+		  {
+          		if ( 0 == ensure_path_mounted("/sdcard") )
+          		{          
+	    		__system("mkdir /sdcard/devil/backup_init.d");	
+            		__system("cp /system/etc/init.d/* /sdcard/devil/backup_init.d/");
+           		ui_print("init.d backed up to /sdcard/devil/backup_init.d\n");
+           		ensure_path_unmounted("/sdcard");
+          		}
+         		else
+         		{
+           		ui_print("Unable to mount /sdcard - nothing done!");
+         		}
+		  }
+                break;
+            	}
+
+
+	    	case 2:
             {
                 if (confirm_selection( "Confirm clearing?", "Yes - Clear NSTools settings")) 
 				{
@@ -1187,7 +1208,7 @@ void show_devil_menu()
                 break;
             }   
 
-		case 2:
+		case 3:
             {
                 if (confirm_selection( "Remove default profile?", "Yes - Remove NSTools profile")) 
       			{
@@ -1202,7 +1223,7 @@ void show_devil_menu()
                break;
             }
 
-		case 3:
+		case 4:
             {
                 if (confirm_selection( "Restore default profile?", "Yes - Restore NSTools profile")) 
       			{
@@ -1215,7 +1236,7 @@ void show_devil_menu()
                break;
             }
 
-		case 4:
+		case 5:
             {
                 if (confirm_selection( "Load SMOOTH profile?", "Yes - Load SMOOTH")) 
       			{
@@ -1227,7 +1248,7 @@ void show_devil_menu()
                break;
             }
 
-		case 5:
+		case 6:
             {
                 if (confirm_selection( "Load NORMAL profile?", "Yes - Load NORMAL")) 
       			{
@@ -1239,7 +1260,7 @@ void show_devil_menu()
                break;
             }
 
-		case 6:
+		case 7:
             {
                 if (confirm_selection( "Load POWERSAVE profile?", "Yes - Load POWERSAVE")) 
       			{
