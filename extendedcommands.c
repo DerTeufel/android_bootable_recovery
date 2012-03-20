@@ -1136,7 +1136,8 @@ void show_advanced_menu()
 void show_devil_menu()
 {
     ensure_path_mounted("/system");
-    ensure_path_mounted("/data");    
+    ensure_path_mounted("/data");
+    ensure_path_mounted("/datadata");    
 
     static char* headers[] = {  "Devil Kernel - Extras Menu",
 								"",
@@ -1192,6 +1193,7 @@ void show_devil_menu()
       			{
               		ensure_path_mounted("/data");
         		ensure_path_mounted("/datadata");
+			__system("mkdir /data/local/mobi.cyann.nstools/backup/");
               		ui_print("Moving NSTools default profile to Backup folder...\n");
               		__system("mv /data/data/mobi.cyann.nstools/settings/default /data/local/mobi.cyann.nstools/backup/");
 			__system("mv /datadata/mobi.cyann.nstools/settings/default /data/local/mobi.cyann.nstools/backup/");
@@ -1207,7 +1209,7 @@ void show_devil_menu()
               		ensure_path_mounted("/data");
         		ensure_path_mounted("/datadata");
               		ui_print("Moving NSTools default profile back...\n");
-              		__system("mv /data/local/mobi.cyann.nstools/backup/default /data/data/mobi.cyann.nstools/settings/default/");
+              		__system("mv /data/local/mobi.cyann.nstools/backup/default /data/data/mobi.cyann.nstools/settings/");
               		ui_print("Done!\n");
           		}
                break;
@@ -1217,6 +1219,8 @@ void show_devil_menu()
             {
                 if (confirm_selection( "Load SMOOTH profile?", "Yes - Load SMOOTH")) 
       			{
+			ensure_path_mounted("/system");
+			__system("mkdir /system/etc/devil/");
 		    	__system("echo smooth > /system/etc/devil/profile");
     			ui_print("SMOOTH profile activated\n");
           		}
@@ -1227,6 +1231,8 @@ void show_devil_menu()
             {
                 if (confirm_selection( "Load NORMAL profile?", "Yes - Load NORMAL")) 
       			{
+			ensure_path_mounted("/system");
+			__system("mkdir /system/etc/devil/");
 		    	__system("echo normal > /system/etc/devil/profile");
     			ui_print("NORMAL profile activated\n");
           		}
@@ -1237,6 +1243,8 @@ void show_devil_menu()
             {
                 if (confirm_selection( "Load POWERSAVE profile?", "Yes - Load POWERSAVE")) 
       			{
+			ensure_path_mounted("/system");
+			__system("mkdir /system/etc/devil/");
 		    	__system("echo powersave > /system/etc/devil/profile");
     			ui_print("POWERSAVE profile activated\n");
           		}
