@@ -1,4 +1,4 @@
-de#include <ctype.h>
+#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
