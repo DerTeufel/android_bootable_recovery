@@ -1299,6 +1299,42 @@ void show_devil_menu()
     //ensure_path_unmounted("/data");    
 }
 
+void show_storage_menu()
+{
+    static char* headers[] = {  "Devil Kernel - USB storage menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "MTP mode",
+    						"Mass storage mode",
+    						NULL
+    };
+
+    for (;;)
+    {
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        {
+		    case 0:
+			{
+				__system("setprop persist.sys.usb.config mtp,adb");
+				ui_print("USB storage mode set to MTP\n");
+				break;
+			}
+			case 1:
+			{
+				__system("setprop persist.sys.usb.config mass_storage,adb");
+				ui_print("USB storage mode set to mass_storage\n");
+				break;
+			}
+		}
+	}
+}
+
+
 void write_fstab_root(char *path, FILE *file)
 {
     Volume *vol = volume_for_path(path);
