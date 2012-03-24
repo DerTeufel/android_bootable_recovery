@@ -1146,13 +1146,12 @@ void show_devil_menu()
 
     static char* list[] = { "Clear init.d",
 		            "Backup init.d to Sd Card",
-			    "Delete NSTools Settings",
-			    "Remove NSTools default profile",
-			    "Restore NSTools default profile",
+			    "NSTools Settings",
+			    "USB Mode Settings",
 			    "Activate SMOOTH Profile",
 			    "Activate NORMAL Profile",
 			    "Activate POWERSAVE Profile",
-			    "Copy last_kmsg to Sd Card" 	 
+			    "Copy last_kmsg to Sd Card", 	 
                             					NULL
     };
 
@@ -1194,50 +1193,20 @@ void show_devil_menu()
                 break;
             	}
 
-
-	    	case 2:
-            {
-                if (confirm_selection( "Confirm clearing?", "Yes - Clear NSTools settings")) 
-				{
-					ensure_path_mounted("/data");
-					ensure_path_mounted("/datadata");
-					ui_print("Clearing NSTools settings...\n");
-					__system("rm /data/data/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml");
-					__system("rm /datadata/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml");
-					ui_print("Done!\n");
-				}
-                break;
-            }   
+		case 2:
+		{
+			show_nstools_menu();
+			break;
+		}
 
 		case 3:
-            {
-                if (confirm_selection( "Remove default profile?", "Yes - Remove NSTools profile")) 
-      			{
-              		ensure_path_mounted("/data");
-        		ensure_path_mounted("/datadata");
-			__system("mkdir /data/local/mobi.cyann.nstools/backup/");
-              		ui_print("Moving NSTools default profile to Backup folder...\n");
-              		__system("mv /data/data/mobi.cyann.nstools/settings/default /data/local/mobi.cyann.nstools/backup/");
-			__system("mv /datadata/mobi.cyann.nstools/settings/default /data/local/mobi.cyann.nstools/backup/");
-              		ui_print("Done!\n");
-          		}
-               break;
-            }
+		{
+			show_storage_menu();
+			break;
+		}
+
 
 		case 4:
-            {
-                if (confirm_selection( "Restore default profile?", "Yes - Restore NSTools profile")) 
-      			{
-              		ensure_path_mounted("/data");
-        		ensure_path_mounted("/datadata");
-              		ui_print("Moving NSTools default profile back...\n");
-              		__system("mv /data/local/mobi.cyann.nstools/backup/default /data/data/mobi.cyann.nstools/settings/");
-              		ui_print("Done!\n");
-          		}
-               break;
-            }
-
-		case 5:
             {
                 if (confirm_selection( "Load SMOOTH profile?", "Yes - Load SMOOTH")) 
       			{
@@ -1249,7 +1218,7 @@ void show_devil_menu()
                break;
             }
 
-		case 6:
+		case 5:
             {
                 if (confirm_selection( "Load NORMAL profile?", "Yes - Load NORMAL")) 
       			{
@@ -1261,7 +1230,7 @@ void show_devil_menu()
                break;
             }
 
-		case 7:
+		case 6:
             {
                 if (confirm_selection( "Load POWERSAVE profile?", "Yes - Load POWERSAVE")) 
       			{
@@ -1273,7 +1242,7 @@ void show_devil_menu()
                break;
             }
 
-		case 8:
+		case 7:
             	{
                 if (confirm_selection( "Copy last_kmsg to Sd Card?", "Yes - Copy last_kmsg")) 
 		  {
@@ -1292,7 +1261,6 @@ void show_devil_menu()
 		  }
                 break;
             	}
-
         }
     }
     //ensure_path_unmounted("/system");
@@ -1332,6 +1300,76 @@ void show_storage_menu()
 			}
 		}
 	}
+}
+
+
+void show_nstools_menu()
+{
+    ensure_path_mounted("/system");
+    ensure_path_mounted("/data");
+    ensure_path_mounted("/datadata");    
+
+    static char* headers[] = {  "Devil Kernel - NSTools Menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Delete NSTools Settings",
+			    "Remove NSTools default profile",
+			    "Restore NSTools default profile",
+								NULL
+    };
+
+    for (;;)
+    {
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        {
+	    	case 0:
+            {
+                if (confirm_selection( "Confirm clearing?", "Yes - Clear NSTools settings")) 
+				{
+					ensure_path_mounted("/data");
+					ensure_path_mounted("/datadata");
+					ui_print("Clearing NSTools settings...\n");
+					__system("rm /data/data/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml");
+					__system("rm /datadata/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml");
+					ui_print("Done!\n");
+				}
+                break;
+            }   
+
+		case 1:
+            {
+                if (confirm_selection( "Remove default profile?", "Yes - Remove NSTools profile")) 
+      			{
+              		ensure_path_mounted("/data");
+        		ensure_path_mounted("/datadata");
+			__system("mkdir /data/local/mobi.cyann.nstools/backup/");
+              		ui_print("Moving NSTools default profile to Backup folder...\n");
+              		__system("mv /data/data/mobi.cyann.nstools/settings/default /data/local/mobi.cyann.nstools/backup/");
+			__system("mv /datadata/mobi.cyann.nstools/settings/default /data/local/mobi.cyann.nstools/backup/");
+              		ui_print("Done!\n");
+          		}
+               break;
+            }
+
+		case 2:
+            {
+                if (confirm_selection( "Restore default profile?", "Yes - Restore NSTools profile")) 
+      			{
+              		ensure_path_mounted("/data");
+        		ensure_path_mounted("/datadata");
+              		ui_print("Moving NSTools default profile back...\n");
+              		__system("mv /data/local/mobi.cyann.nstools/backup/default /data/data/mobi.cyann.nstools/settings/");
+              		ui_print("Done!\n");
+          		}
+               break;
+            }
+	}
+    }
 }
 
 
