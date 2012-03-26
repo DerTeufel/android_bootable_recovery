@@ -1148,10 +1148,9 @@ void show_devil_menu()
 		            "Backup init.d to Sd Card",
 			    "NSTools Settings",
 			    "USB Mode Settings",
-			    "Activate SMOOTH Profile",
-			    "Activate NORMAL Profile",
-			    "Activate POWERSAVE Profile",
-			    "Copy last_kmsg to Sd Card", 	 
+			    "Performance Settings",
+			    "Copy last_kmsg to Sd Card",
+			    "Copy Recovery log to Sd Card",	 	 
                             					NULL
     };
 
@@ -1181,7 +1180,7 @@ void show_devil_menu()
           		if ( 0 == ensure_path_mounted("/sdcard") )
           		{          
 	    		__system("mkdir /sdcard/devil/backup_init.d");	
-            		__system("cp /system/etc/init.d/* /sdcard/devil/backup_init.d/");
+            	__system("cp /system/etc/init.d/* /sdcard/devil/backup_init.d/");
            		ui_print("init.d backed up to /sdcard/devil/backup_init.d\n");
            		ensure_path_unmounted("/sdcard");
           		}
@@ -1205,44 +1204,13 @@ void show_devil_menu()
 			break;
 		}
 
-
 		case 4:
-            {
-                if (confirm_selection( "Load SMOOTH profile?", "Yes - Load SMOOTH")) 
-      			{
-			ensure_path_mounted("/system");
-			__system("mkdir /system/etc/devil/");
-		    	__system("echo smooth > /system/etc/devil/profile");
-    			ui_print("SMOOTH profile activated\n");
-          		}
-               break;
-            }
+		{
+			show_profile_menu();
+			break;
+		}
 
 		case 5:
-            {
-                if (confirm_selection( "Load NORMAL profile?", "Yes - Load NORMAL")) 
-      			{
-			ensure_path_mounted("/system");
-			__system("mkdir /system/etc/devil/");
-		    	__system("echo normal > /system/etc/devil/profile");
-    			ui_print("NORMAL profile activated\n");
-          		}
-               break;
-            }
-
-		case 6:
-            {
-                if (confirm_selection( "Load POWERSAVE profile?", "Yes - Load POWERSAVE")) 
-      			{
-			ensure_path_mounted("/system");
-			__system("mkdir /system/etc/devil/");
-		    	__system("echo powersave > /system/etc/devil/profile");
-    			ui_print("POWERSAVE profile activated\n");
-          		}
-               break;
-            }
-
-		case 7:
             	{
                 if (confirm_selection( "Copy last_kmsg to Sd Card?", "Yes - Copy last_kmsg")) 
 		  {
@@ -1261,6 +1229,25 @@ void show_devil_menu()
 		  }
                 break;
             	}
+
+		case 6:
+            	{
+                if (confirm_selection( "Copy recovery log to Sd Card?", "Yes - Copy log")) 
+		  {
+          		if ( 0 == ensure_path_mounted("/sdcard") )
+          		{   
+    			mkdir("/sdcard/devil", S_IRWXU);
+    			__system("cp /tmp/recovery.log /sdcard/devil/recovery.log");
+    			ui_print("/tmp/recovery.log was copied to /sdcard/devil/recovery.log.\n");
+          		}
+         		else
+         		{
+           		ui_print("Unable to mount /sdcard - nothing done!");
+         		}
+		  }
+		break;
+		}
+
         }
     }
     //ensure_path_unmounted("/system");
@@ -1368,10 +1355,73 @@ void show_nstools_menu()
           		}
                break;
             }
-	}
+	    }
     }
 }
 
+
+void show_profile_menu()
+{
+    ensure_path_mounted("/system");
+    ensure_path_mounted("/data");
+    ensure_path_mounted("/datadata");    
+
+    static char* headers[] = {  "Devil Kernel - Performance Menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Smooth Settings",
+			    "Normal Settings",
+			    "Powersave Settings",
+								NULL
+    };
+
+    for (;;)
+    {
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        {
+		case 0:
+            {
+                if (confirm_selection( "Load SMOOTH profile?", "Yes - Load SMOOTH")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir /system/etc/devil/");
+		    	__system("echo smooth > /system/etc/devil/profile");
+    			ui_print("SMOOTH profile activated\n");
+          		}
+               break;
+            }
+
+		case 1:
+            {
+                if (confirm_selection( "Load NORMAL profile?", "Yes - Load NORMAL")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir /system/etc/devil/");
+		    	__system("echo normal > /system/etc/devil/profile");
+    			ui_print("NORMAL profile activated\n");
+          		}
+               break;
+            }
+
+		case 2:
+            {
+                if (confirm_selection( "Load POWERSAVE profile?", "Yes - Load POWERSAVE")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir /system/etc/devil/");
+		    	__system("echo powersave > /system/etc/devil/profile");
+    			ui_print("POWERSAVE profile activated\n");
+          		}
+               break;
+            }
+	    }
+    }
+}
 
 void write_fstab_root(char *path, FILE *file)
 {
