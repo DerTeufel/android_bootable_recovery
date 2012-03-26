@@ -416,7 +416,7 @@ static void *progress_thread(void *cookie)
 }
 
 //kanged this vibrate stuff from teamwin (thanks guys!)
-#define VIBRATOR_TIME_MS        10
+#define VIBRATOR_TIME_MS        20
 
 static int rel_sum = 0;
 static int in_touch = 0; //1 = in a touch
@@ -475,13 +475,13 @@ static int input_callback(int fd, short revents, void *data)
     } else {
         rel_sum = 0;
     }
-
-    if (ev.type == 3 && ev.code == 57 && ev.value != -1) {
+	printf("ev.type: %x, ev.code: %x, ev.value: %i\n", ev.type, ev.code, ev.value);
+    if (ev.type == 3 && ev.code == 48 && ev.value != 0) {
         if (in_touch == 0) {
             in_touch = 1; //starting to track touch...
             reset_gestures();
         }
-    } else if (ev.type == 3 && ev.code == 57 && ev.value == -1) {
+    } else if (ev.type == 3 && ev.code == 48 && ev.value == 0) {
             //finger lifted! lets run with this
             ev.type = EV_KEY; //touch panel support!!!
             int keywidth = gr_get_width(surface) / 4;
@@ -502,13 +502,13 @@ static int input_callback(int fd, short revents, void *data)
                     reset_gestures();
                 } else {
                     //enter key
-                    ev.code = KEY_POWER;
+                    ev.code = KEY_ENTER;
                     reset_gestures();
                 }
                 vibrate(VIBRATOR_TIME_MS);
             }
             if (slide_right == 1) {
-                ev.code = KEY_POWER;
+                ev.code = KEY_ENTER;
                 slide_right = 0;
             } else if (slide_left == 1) {
                 ev.code = KEY_BACK;
@@ -543,11 +543,11 @@ static int input_callback(int fd, short revents, void *data)
             diff_y += touch_y - old_y;
 
    if(touch_y < (gr_fb_height() - gr_get_height(surface))) {
-            if (diff_y > 40) {
+            if (diff_y > 25) {
                 ev.code = KEY_DOWN;
                 ev.type = EV_KEY;
                 reset_gestures();
-	 } else if (diff_y < -40) {
+	 } else if (diff_y < -25) {
                 ev.code = KEY_UP;
                 ev.type = EV_KEY;
                 reset_gestures();
