@@ -154,7 +154,8 @@ static void draw_install_overlay_locked(int frame) {
 static void draw_background_locked(int icon)
 {
     gPagesIdentical = 0;
-    gr_color(0, 0, 0, 255);
+//    gr_color(0, 0, 0, 255);
+	gr_color(255, 0, 0, 255);
     gr_fill(0, 0, gr_fb_width(), gr_fb_height());
 
     if (icon) {
@@ -187,7 +188,8 @@ static void draw_progress_locked()
         int dy = (3*gr_fb_height() + iconHeight - 2*height)/4;
 
         // Erase behind the progress bar (in case this was a progress-only update)
-        gr_color(0, 0, 0, 255);
+//        gr_color(0, 0, 0, 255);
+gr_color(255, 0, 0, 255);
         gr_fill(dx, dy, width, height);
 
         if (gProgressBarType == PROGRESSBAR_TYPE_NORMAL) {
@@ -251,9 +253,10 @@ static void draw_text_line(int row, const char* t, int align) {
 //#define MENU_TEXT_COLOR 255, 0, 0, 255 //red
 //#define MENU_TEXT_COLOR 0, 128, 0, 255 //green
 //#define MENU_TEXT_COLOR 255, 160, 49, 255 //yellow-orange
-//#define MENU_TEXT_COLOR 0, 0, 0, 255 //black
-#define MENU_TEXT_COLOR 0, 191, 255, 255 //blue-normal
-#define NORMAL_TEXT_COLOR 200, 200, 200, 255 //silver
+#define MENU_TEXT_COLOR 0, 0, 0, 255 //black
+//#define MENU_TEXT_COLOR 0, 191, 255, 255 //blue-normal
+#define NORMAL_TEXT_COLOR 0, 0, 0, 255 //black
+//#define NORMAL_TEXT_COLOR 200, 200, 200, 255 //silver
 //#define NORMAL_TEXT_COLOR 0, 247, 255, 255 //light-blue
 //#define NORMAL_TEXT_COLOR 255, 0, 0, 255 //red
 //#define NORMAL_TEXT_COLOR 0, 128, 0, 255 //green
