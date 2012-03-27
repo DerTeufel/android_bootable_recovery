@@ -408,7 +408,7 @@ copy_sideloaded_package(const char* original_path) {
 
 static char**
 prepend_title(char** headers) {
-    char* title[] = { EXPAND(RECOVERY_VERSION),
+    char* title[] = { "Devil Recovery - "EXPAND(RECOVERY_VERSION),
                       "",
                       NULL };
 

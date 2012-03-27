@@ -31,7 +31,7 @@ ifdef I_AM_KOUSH
 RECOVERY_NAME := ClockworkMod Recovery
 LOCAL_CFLAGS += -DI_AM_KOUSH
 else
-RECOVERY_NAME := CWMR Touch
+RECOVERY_NAME := Devil Recovery
 endif
 
 RECOVERY_VERSION := $(RECOVERY_NAME) v5.5.0.4
