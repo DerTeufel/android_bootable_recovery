@@ -1145,12 +1145,11 @@ void show_devil_menu()
     };
 
     static char* list[] = { "Clear init.d",
-		            "Backup init.d to Sd Card",
+		            "Backup init.d to SD Card",
 			    "NSTools Settings",
 			    "USB Mode Settings",
 			    "Performance Settings",
-			    "Copy last_kmsg to Sd Card",
-			    "Copy Recovery log to Sd Card",	 	 
+			    "Debug Menu",	 	 
                             					NULL
     };
 
@@ -1161,92 +1160,60 @@ void show_devil_menu()
             break;
 		switch (chosen_item)
         {
-		case 0:
+			case 0:
             	{
-                if (confirm_selection( "Confirm clearing?", "Yes - Clear init.d")) 
+					if (confirm_selection( "Confirm clearing?", "Yes - Clear init.d")) 
+					{
+						ensure_path_mounted("/system");
+						ui_print("Clearing init.d...\n");
+						__system("rm /system/etc/init.d/*");
+						ui_print("Done!\n");
+					}
+					break;
+            	}
+
+			case 1:
+            	{
+					if (confirm_selection( "Backup init.d to Sd Card?", "Yes - Backup init.d")) 
+					{
+					if ( 0 == ensure_path_mounted("/sdcard") )
+						{          
+						__system("mkdir /sdcard/devil/backup_init.d");	
+						__system("cp /system/etc/init.d/* /sdcard/devil/backup_init.d/");
+						ui_print("init.d backed up...\n");
+						ui_print("...to /sdcard/devil/backup_init.d\n");
+						ensure_path_unmounted("/sdcard");
+						}
+						else
+						{
+						ui_print("Unable to mount SD Card - nothing done!");
+						}
+					}
+					break;
+            	}
+
+			case 2:
 				{
-					ensure_path_mounted("/system");
-					ui_print("Clearing init.d...\n");
-					__system("rm /system/etc/init.d/*");
-					ui_print("Done!\n");
+					show_nstools_menu();
+					break;
 				}
-                break;
-            	}
-
-		case 1:
-            	{
-                if (confirm_selection( "Backup init.d to Sd Card?", "Yes - Backup init.d")) 
-		  {
-          		if ( 0 == ensure_path_mounted("/sdcard") )
-          		{          
-	    		__system("mkdir /sdcard/devil/backup_init.d");	
-            	__system("cp /system/etc/init.d/* /sdcard/devil/backup_init.d/");
-           		ui_print("init.d backed up to /sdcard/devil/backup_init.d\n");
-           		ensure_path_unmounted("/sdcard");
-          		}
-         		else
-         		{
-           		ui_print("Unable to mount /sdcard - nothing done!");
-         		}
-		  }
-                break;
-            	}
-
-		case 2:
-		{
-			show_nstools_menu();
-			break;
-		}
 
 		case 3:
-		{
-			show_storage_menu();
-			break;
-		}
+				{
+					show_storage_menu();
+					break;
+				}
 
 		case 4:
-		{
-			show_profile_menu();
-			break;
-		}
-
+				{
+					show_profile_menu();
+					break;
+				}
 		case 5:
-            	{
-                if (confirm_selection( "Copy last_kmsg to Sd Card?", "Yes - Copy last_kmsg")) 
-		  {
-          		if ( 0 == ensure_path_mounted("/sdcard") )
-          		{          
-	    		__system("mkdir /sdcard/devil");	
-            		__system("cp /proc/last_kmsg /sdcard/devil/");
-            		__system("cp /proc/cmdline /sdcard/devil/");
-           		ui_print("last_kmsg and /proc/cmdline copied to /sdcard/devil\n");
-           		ensure_path_unmounted("/sdcard");
-          		}
-         		else
-         		{
-           		ui_print("Unable to mount /sdcard - nothing done!");
-         		}
-		  }
-                break;
-            	}
-
-		case 6:
-            	{
-                if (confirm_selection( "Copy recovery log to Sd Card?", "Yes - Copy log")) 
-		  {
-          		if ( 0 == ensure_path_mounted("/sdcard") )
-          		{   
-    			mkdir("/sdcard/devil", S_IRWXU);
-    			__system("cp /tmp/recovery.log /sdcard/devil/recovery.log");
-    			ui_print("/tmp/recovery.log was copied to /sdcard/devil/recovery.log.\n");
-          		}
-         		else
-         		{
-           		ui_print("Unable to mount /sdcard - nothing done!");
-         		}
-		  }
-		break;
-		}
+				{
+					show_debug_menu();
+					break;
+				}
 
         }
     }
@@ -1422,6 +1389,69 @@ void show_profile_menu()
 	    }
     }
 }
+
+
+void show_debug_menu()
+{
+    static char* headers[] = {  "Devil Kernel - Debug menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Copy last_kmsg to SD Card",
+    						"Copy recovery log to SD Card",
+    						NULL
+    };
+
+    for (;;)
+    {
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        {
+		    
+			case 0:
+            {
+                if (confirm_selection( "Copy last_kmsg to SD Card?", "Yes - Copy last_kmsg")) 
+					{
+						if ( 0 == ensure_path_mounted("/sdcard") )
+						{          
+						__system("mkdir /sdcard/devil");	
+						__system("cp /proc/last_kmsg /sdcard/devil/");
+						__system("cp /proc/cmdline /sdcard/devil/");
+						ui_print("last_kmsg and /proc/cmdline copied to /sdcard/devil\n");
+						ensure_path_unmounted("/sdcard");
+						}
+						else
+						{
+						ui_print("Unable to mount SD Card - nothing done!\n");
+						}
+					}
+                break;
+            }
+
+			case 1:
+            {
+                if (confirm_selection( "Copy recovery log to SD Card?", "Yes - Copy log")) 
+					{
+						if ( 0 == ensure_path_mounted("/sdcard") )
+						{   
+						mkdir("/sdcard/devil", S_IRWXU);
+						__system("cp /tmp/recovery.log /sdcard/devil/recovery.log");
+						ui_print("/tmp/recovery.log was copied to /sdcard/devil/recovery.log.\n");
+						}
+						else
+						{
+						ui_print("Unable to mount SD Card - nothing done!\n");
+						}
+					}
+				break;
+			}
+		}
+	}
+}
+
 
 void write_fstab_root(char *path, FILE *file)
 {
