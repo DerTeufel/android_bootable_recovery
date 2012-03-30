@@ -1133,6 +1133,7 @@ void show_advanced_menu()
     }
 }
 
+
 void show_devil_menu()
 {
     ensure_path_mounted("/system");
@@ -1144,8 +1145,7 @@ void show_devil_menu()
 								NULL
     };
 
-    static char* list[] = { "Clear init.d",
-		            "Backup init.d to SD Card",
+    static char* list[] = { "init.d Menu",
 			    "NSTools Settings",
 			    "USB Mode Settings",
 			    "Performance Settings",
@@ -1159,9 +1159,65 @@ void show_devil_menu()
         if (chosen_item == GO_BACK)
             break;
 		switch (chosen_item)
-        {
+        	{
 			case 0:
-            	{
+            		{
+				show_initd_menu();
+				break;
+            		}
+
+			case 1:
+			{
+				show_nstools_menu();
+				break;
+			}
+
+			case 2:
+			{
+				show_storage_menu();
+				break;
+			}
+
+			case 3:
+			{
+				show_profile_menu();
+				break;
+			}
+			case 4:
+			{
+				show_debug_menu();
+				break;
+			}
+
+        }
+    }
+    //ensure_path_unmounted("/system");
+    //ensure_path_unmounted("/data");    
+}
+
+
+
+void show_initd_menu()
+{
+    static char* headers[] = {  "Devil Kernel - init.d menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Clear init.d",
+    						"Backup init.d to SD Card",
+    						NULL
+    };
+
+    for (;;)
+    	{
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        	{
+			case 0:
+            		{
 					if (confirm_selection( "Confirm clearing?", "Yes - Clear init.d")) 
 					{
 						ensure_path_mounted("/system");
@@ -1170,18 +1226,18 @@ void show_devil_menu()
 						ui_print("Done!\n");
 					}
 					break;
-            	}
+            		}
 
 			case 1:
-            	{
+            		{
 					if (confirm_selection( "Backup init.d to Sd Card?", "Yes - Backup init.d")) 
 					{
-					if ( 0 == ensure_path_mounted("/sdcard") )
+						if ( 0 == ensure_path_mounted("/sdcard") )
 						{          
 						__system("mkdir /sdcard/devil/backup_init.d");	
 						__system("cp /system/etc/init.d/* /sdcard/devil/backup_init.d/");
-						ui_print("init.d backed up...\n");
-						ui_print("...to /sdcard/devil/backup_init.d\n");
+						ui_print("init.d backed up\n");
+						ui_print("to /sdcard/devil/backup_init.d\n");
 						ensure_path_unmounted("/sdcard");
 						}
 						else
@@ -1190,36 +1246,11 @@ void show_devil_menu()
 						}
 					}
 					break;
-            	}
-
-			case 2:
-				{
-					show_nstools_menu();
-					break;
-				}
-
-		case 3:
-				{
-					show_storage_menu();
-					break;
-				}
-
-		case 4:
-				{
-					show_profile_menu();
-					break;
-				}
-		case 5:
-				{
-					show_debug_menu();
-					break;
-				}
-
-        }
-    }
-    //ensure_path_unmounted("/system");
-    //ensure_path_unmounted("/data");    
+            		}
+		}
+	}
 }
+
 
 void show_storage_menu()
 {
@@ -1234,13 +1265,13 @@ void show_storage_menu()
     };
 
     for (;;)
-    {
+    	{
 		int chosen_item = get_menu_selection(headers, list, 0, 0);
         if (chosen_item == GO_BACK)
             break;
 		switch (chosen_item)
-        {
-		    case 0:
+        	{
+		    	case 0:
 			{
 				__system("setprop persist.sys.usb.config mtp,adb");
 				ui_print("USB storage mode set to MTP\n");
@@ -1282,46 +1313,46 @@ void show_nstools_menu()
 		switch (chosen_item)
         {
 	    	case 0:
-            {
+            	{
                 if (confirm_selection( "Confirm clearing?", "Yes - Clear NSTools settings")) 
-				{
-					ensure_path_mounted("/data");
-					ensure_path_mounted("/datadata");
-					ui_print("Clearing NSTools settings...\n");
-					__system("rm /data/data/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml");
-					__system("rm /datadata/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml");
-					ui_print("Done!\n");
-				}
+			{
+			ensure_path_mounted("/data");
+			ensure_path_mounted("/datadata");
+			ui_print("Clearing NSTools settings...\n");
+			__system("rm /data/data/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml");
+			__system("rm /datadata/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml");
+			ui_print("Done!\n");
+			}
                 break;
-            }   
+            	}   
 
 		case 1:
-            {
+            	{
                 if (confirm_selection( "Remove default profile?", "Yes - Remove NSTools profile")) 
       			{
               		ensure_path_mounted("/data");
         		ensure_path_mounted("/datadata");
 			__system("mkdir /data/local/mobi.cyann.nstools/backup/");
               		ui_print("Moving NSTools default profile to Backup folder...\n");
-              		__system("mv /data/data/mobi.cyann.nstools/settings/default /data/local/mobi.cyann.nstools/backup/");
-			__system("mv /datadata/mobi.cyann.nstools/settings/default /data/local/mobi.cyann.nstools/backup/");
+              		__system("cp /data/data/mobi.cyann.nstools/settings/default /data/local/mobi.cyann.nstools/backup/");
+			__system("rm /data/data/mobi.cyann.nstools/settings/default");
               		ui_print("Done!\n");
           		}
-               break;
-            }
+               	break;
+            	}
 
 		case 2:
-            {
+            	{
                 if (confirm_selection( "Restore default profile?", "Yes - Restore NSTools profile")) 
       			{
               		ensure_path_mounted("/data");
         		ensure_path_mounted("/datadata");
               		ui_print("Moving NSTools default profile back...\n");
-              		__system("mv /data/local/mobi.cyann.nstools/backup/default /data/data/mobi.cyann.nstools/settings/");
+              		__system("cp /data/local/mobi.cyann.nstools/backup/default /data/data/mobi.cyann.nstools/settings/");
               		ui_print("Done!\n");
           		}
-               break;
-            }
+               	break;
+            	}
 	    }
     }
 }
@@ -1350,22 +1381,22 @@ void show_profile_menu()
         if (chosen_item == GO_BACK)
             break;
 		switch (chosen_item)
-        {
+	{
 		case 0:
-            {
-                if (confirm_selection( "Load SMOOTH profile?", "Yes - Load SMOOTH")) 
+            	{
+                	if (confirm_selection( "Load SMOOTH profile?", "Yes - Load SMOOTH")) 
       			{
 			ensure_path_mounted("/system");
 			__system("mkdir /system/etc/devil/");
 		    	__system("echo smooth > /system/etc/devil/profile");
     			ui_print("SMOOTH profile activated\n");
           		}
-               break;
-            }
+               	break;
+            	}
 
 		case 1:
-            {
-                if (confirm_selection( "Load NORMAL profile?", "Yes - Load NORMAL")) 
+            	{
+                	if (confirm_selection( "Load NORMAL profile?", "Yes - Load NORMAL")) 
       			{
 			ensure_path_mounted("/system");
 			__system("mkdir /system/etc/devil/");
@@ -1373,10 +1404,10 @@ void show_profile_menu()
     			ui_print("NORMAL profile activated\n");
           		}
                break;
-            }
+            	}
 
 		case 2:
-            {
+            	{
                 if (confirm_selection( "Load POWERSAVE profile?", "Yes - Load POWERSAVE")) 
       			{
 			ensure_path_mounted("/system");
@@ -1385,8 +1416,8 @@ void show_profile_menu()
     			ui_print("POWERSAVE profile activated\n");
           		}
                break;
-            }
-	    }
+            	}
+	}
     }
 }
 
@@ -1412,8 +1443,8 @@ void show_debug_menu()
         {
 		    
 			case 0:
-            {
-                if (confirm_selection( "Copy last_kmsg to SD Card?", "Yes - Copy last_kmsg")) 
+            		{
+                		if (confirm_selection( "Copy last_kmsg to SD Card?", "Yes - Copy last_kmsg")) 
 					{
 						if ( 0 == ensure_path_mounted("/sdcard") )
 						{          
@@ -1428,12 +1459,12 @@ void show_debug_menu()
 						ui_print("Unable to mount SD Card - nothing done!\n");
 						}
 					}
-                break;
-            }
+                	break;
+            		}
 
 			case 1:
-            {
-                if (confirm_selection( "Copy recovery log to SD Card?", "Yes - Copy log")) 
+            		{
+                		if (confirm_selection( "Copy recovery log to SD Card?", "Yes - Copy log")) 
 					{
 						if ( 0 == ensure_path_mounted("/sdcard") )
 						{   
@@ -1446,7 +1477,7 @@ void show_debug_menu()
 						ui_print("Unable to mount SD Card - nothing done!\n");
 						}
 					}
-				break;
+			break;
 			}
 		}
 	}
