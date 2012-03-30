@@ -1234,7 +1234,7 @@ void show_initd_menu()
 					{
 						if ( 0 == ensure_path_mounted("/sdcard") )
 						{          
-						__system("mkdir /sdcard/devil/backup_init.d");	
+						__system("mkdir -p /sdcard/devil/backup_init.d");	
 						__system("cp /system/etc/init.d/* /sdcard/devil/backup_init.d/");
 						ui_print("init.d backed up\n");
 						ui_print("to /sdcard/devil/backup_init.d\n");
@@ -1332,7 +1332,7 @@ void show_nstools_menu()
       			{
               		ensure_path_mounted("/data");
         		ensure_path_mounted("/datadata");
-			__system("mkdir /data/local/mobi.cyann.nstools/backup/");
+			__system("mkdir -p /data/local/mobi.cyann.nstools/backup");
               		ui_print("Moving NSTools default profile to Backup folder...\n");
               		__system("cp /data/data/mobi.cyann.nstools/settings/default /data/local/mobi.cyann.nstools/backup/");
 			__system("rm /data/data/mobi.cyann.nstools/settings/default");
@@ -1387,7 +1387,7 @@ void show_profile_menu()
                 	if (confirm_selection( "Load SMOOTH profile?", "Yes - Load SMOOTH")) 
       			{
 			ensure_path_mounted("/system");
-			__system("mkdir /system/etc/devil/");
+			__system("mkdir -p /system/etc/devil");
 		    	__system("echo smooth > /system/etc/devil/profile");
     			ui_print("SMOOTH profile activated\n");
           		}
@@ -1399,7 +1399,7 @@ void show_profile_menu()
                 	if (confirm_selection( "Load NORMAL profile?", "Yes - Load NORMAL")) 
       			{
 			ensure_path_mounted("/system");
-			__system("mkdir /system/etc/devil/");
+			__system("mkdir -p /system/etc/devil");
 		    	__system("echo normal > /system/etc/devil/profile");
     			ui_print("NORMAL profile activated\n");
           		}
@@ -1411,7 +1411,7 @@ void show_profile_menu()
                 if (confirm_selection( "Load POWERSAVE profile?", "Yes - Load POWERSAVE")) 
       			{
 			ensure_path_mounted("/system");
-			__system("mkdir /system/etc/devil/");
+			__system("mkdir -p /system/etc/devil");
 		    	__system("echo powersave > /system/etc/devil/profile");
     			ui_print("POWERSAVE profile activated\n");
           		}
@@ -1448,7 +1448,7 @@ void show_debug_menu()
 					{
 						if ( 0 == ensure_path_mounted("/sdcard") )
 						{          
-						__system("mkdir /sdcard/devil");	
+						__system("mkdir -p /sdcard/devil");	
 						__system("cp /proc/last_kmsg /sdcard/devil/");
 						__system("cp /proc/cmdline /sdcard/devil/");
 						ui_print("last_kmsg and /proc/cmdline copied to /sdcard/devil\n");
