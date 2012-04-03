@@ -1206,6 +1206,7 @@ void show_initd_menu()
 
     static char* list[] = { "Clear init.d",
     						"Backup init.d to SD Card",
+						"Resore init.d from SD Card",
     						NULL
     };
 
@@ -1247,6 +1248,28 @@ void show_initd_menu()
 					}
 					break;
             		}
+
+
+			case 2:
+            		{
+					if (confirm_selection( "Restore init.d from Sd Card?", "Yes - Restore init.d")) 
+					{
+						if ( 0 == ensure_path_mounted("/sdcard") )
+						{          
+						__system("cp /sdcard/devil/backup_init.d/* /system/etc/init.d/");
+						ui_print("init.d restored\n");
+						ensure_path_unmounted("/sdcard");
+						}
+						else
+						{
+						ui_print("Unable to mount SD Card - nothing done!");
+						}
+					}
+					break;
+            		}
+
+
+
 		}
 	}
 }
