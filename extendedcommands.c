@@ -1395,7 +1395,6 @@ void show_profile_menu()
     static char* list[] = { "Smooth Settings",
 			    "Normal Settings",
 			    "Powersave Settings",
-			    "Set max. frequency used for boot", 	
 								NULL
     };
 
@@ -1441,12 +1440,6 @@ void show_profile_menu()
           		}
                break;
             	}
-
-		case 3:
-		{
-			show_bootspeed_menu();
-			break;
-		}
 	}
     }
 }
@@ -1513,103 +1506,7 @@ void show_debug_menu()
 	}
 }
 
-void show_bootspeed_menu()
-{
-    static char* headers[] = {  "Devil Kernel - Bootspeed menu",
-								"",
-								NULL
-    };
 
-    static char* list[] = { "1400 Mhz",
-    						"1300 Mhz",
-						"1200 Mhz",
-						"1080 Mhz",
-						"1000 Mhz",
-						"800 Mhz",
-    						NULL
-    };
-
-    for (;;)
-    	{
-		int chosen_item = get_menu_selection(headers, list, 0, 0);
-        if (chosen_item == GO_BACK)
-            break;
-		switch (chosen_item)
-        	{
-			case 0:
-            		{
-                	if (confirm_selection( "Set 1400 Mhz as boot speed?", "Yes - 1400 Mhz boot speed)) 
-      			{
-			ensure_path_mounted("/system");
-			__system("mkdir -p /system/etc/devil");
-		    	__system("echo 1400000 > /system/etc/devil/bootspeed");
-    			ui_print("1400 Mhz as set boot speed\n");
-          		}
-               		break;
-            		}
-
-			case 1:
-            		{
-                	if (confirm_selection( "Set 1300 Mhz as boot speed?", "Yes - 1300 Mhz boot speed)) 
-      			{
-			ensure_path_mounted("/system");
-			__system("mkdir -p /system/etc/devil");
-		    	__system("echo 1300000 > /system/etc/devil/bootspeed");
-    			ui_print("1300 Mhz as set boot speed\n");
-          		}
-               		break;
-            		}
-
-			case 2:
-            		{
-                	if (confirm_selection( "Set 1200 Mhz as boot speed?", "Yes - 1200 Mhz boot speed)) 
-      			{
-			ensure_path_mounted("/system");
-			__system("mkdir -p /system/etc/devil");
-		    	__system("echo 1200000 > /system/etc/devil/bootspeed");
-    			ui_print("1200 Mhz as set boot speed\n");
-          		}
-               		break;
-            		}
-
-			case 3:
-            		{
-                	if (confirm_selection( "Set 1080 Mhz as boot speed?", "Yes - 1080 Mhz boot speed)) 
-      			{
-			ensure_path_mounted("/system");
-			__system("mkdir -p /system/etc/devil");
-		    	__system("echo 1080000 > /system/etc/devil/bootspeed");
-    			ui_print("1080 Mhz as set boot speed\n");
-          		}
-               		break;
-            		}
-
-			case 4:
-            		{
-                	if (confirm_selection( "Set 1000 Mhz as boot speed?", "Yes - 1000 Mhz boot speed)) 
-      			{
-			ensure_path_mounted("/system");
-			__system("mkdir -p /system/etc/devil");
-		    	__system("echo 1000000 > /system/etc/devil/bootspeed");
-    			ui_print("1000 Mhz as set boot speed\n");
-          		}
-               		break;
-            		}
-
-			case 5:
-            		{
-                	if (confirm_selection( "Set 800 Mhz as boot speed?", "Yes - 800 Mhz boot speed)) 
-      			{
-			ensure_path_mounted("/system");
-			__system("mkdir -p /system/etc/devil");
-		    	__system("echo 800000 > /system/etc/devil/bootspeed");
-    			ui_print("800 Mhz as set boot speed\n");
-          		}
-               		break;
-            		}
-		}
-	}
-}
 void write_fstab_root(char *path, FILE *file)
 {
     Volume *vol = volume_for_path(path);
