@@ -1538,7 +1538,7 @@ void show_bootspeed_menu()
         	{
 			case 0:
             		{
-                	if (confirm_selection( "Set 1400 Mhz as boot speed?", "Yes - 1400 Mhz boot speed)) 
+                	if (confirm_selection( "Set 1400 Mhz as boot speed?", "Yes - 1400 Mhz boot speed")) 
       			{
 			ensure_path_mounted("/system");
 			__system("mkdir -p /system/etc/devil");
@@ -1550,7 +1550,7 @@ void show_bootspeed_menu()
 
 			case 1:
             		{
-                	if (confirm_selection( "Set 1300 Mhz as boot speed?", "Yes - 1300 Mhz boot speed)) 
+                	if (confirm_selection( "Set 1300 Mhz as boot speed?", "Yes - 1300 Mhz boot speed")) 
       			{
 			ensure_path_mounted("/system");
 			__system("mkdir -p /system/etc/devil");
@@ -1562,7 +1562,7 @@ void show_bootspeed_menu()
 
 			case 2:
             		{
-                	if (confirm_selection( "Set 1200 Mhz as boot speed?", "Yes - 1200 Mhz boot speed)) 
+                	if (confirm_selection( "Set 1200 Mhz as boot speed?", "Yes - 1200 Mhz boot speed")) 
       			{
 			ensure_path_mounted("/system");
 			__system("mkdir -p /system/etc/devil");
@@ -1574,7 +1574,7 @@ void show_bootspeed_menu()
 
 			case 3:
             		{
-                	if (confirm_selection( "Set 1080 Mhz as boot speed?", "Yes - 1080 Mhz boot speed)) 
+                	if (confirm_selection( "Set 1080 Mhz as boot speed?", "Yes - 1080 Mhz boot speed")) 
       			{
 			ensure_path_mounted("/system");
 			__system("mkdir -p /system/etc/devil");
@@ -1586,7 +1586,7 @@ void show_bootspeed_menu()
 
 			case 4:
             		{
-                	if (confirm_selection( "Set 1000 Mhz as boot speed?", "Yes - 1000 Mhz boot speed)) 
+                	if (confirm_selection( "Set 1000 Mhz as boot speed?", "Yes - 1000 Mhz boot speed")) 
       			{
 			ensure_path_mounted("/system");
 			__system("mkdir -p /system/etc/devil");
@@ -1598,7 +1598,7 @@ void show_bootspeed_menu()
 
 			case 5:
             		{
-                	if (confirm_selection( "Set 800 Mhz as boot speed?", "Yes - 800 Mhz boot speed)) 
+                	if (confirm_selection( "Set 800 Mhz as boot speed?", "Yes - 800 Mhz boot speed")) 
       			{
 			ensure_path_mounted("/system");
 			__system("mkdir -p /system/etc/devil");
