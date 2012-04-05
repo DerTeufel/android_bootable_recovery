@@ -1395,7 +1395,8 @@ void show_profile_menu()
     static char* list[] = { "Smooth Settings",
 			    "Normal Settings",
 			    "Powersave Settings",
-			    "Set max. frequency used for boot", 	
+			    "Set max. frequency used for boot", 
+			    "Set live_oc mode", 		
 								NULL
     };
 
@@ -1445,6 +1446,12 @@ void show_profile_menu()
 		case 3:
 		{
 			show_bootspeed_menu();
+			break;
+		}
+
+		case 4:
+		{
+			show_liveoc_menu();
 			break;
 		}
 	}
@@ -1610,6 +1617,57 @@ void show_bootspeed_menu()
 		}
 	}
 }
+
+
+
+void show_liveoc_menu()
+{
+    static char* headers[] = {  "Devil Kernel - Live_oc Menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Normal Mode",
+    						"Selective Mode",
+    						NULL
+    };
+
+    for (;;)
+    	{
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        	{
+			case 0:
+            		{
+                	if (confirm_selection( "Use normal live_oc?", "Yes - use the normal live_oc")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 0 > /system/etc/devil/live_oc_mode");
+    			ui_print("Normal live_oc set as default\n");
+          		}
+               		break;
+            		}
+
+			case 1:
+            		{
+                	if (confirm_selection( "Use normal selective live_oc?", "Yes - use the selective mod")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 1 > /system/etc/devil/live_oc_mode");
+    			ui_print("Selective live_oc set as default\n");
+          		}
+               		break;
+            		}
+		}
+	}
+}
+
+
+
 void write_fstab_root(char *path, FILE *file)
 {
     Volume *vol = volume_for_path(path);
