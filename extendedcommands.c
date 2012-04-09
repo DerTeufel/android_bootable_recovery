@@ -1530,7 +1530,6 @@ void show_bootspeed_menu()
     static char* list[] = { "1400 Mhz",
     						"1300 Mhz",
 						"1200 Mhz",
-						"1080 Mhz",
 						"1000 Mhz",
 						"800 Mhz",
     						NULL
@@ -1591,19 +1590,8 @@ void show_bootspeed_menu()
                		break;
             		}
 
-			case 4:
-            		{
-                	if (confirm_selection( "Set 1000 Mhz as boot speed?", "Yes - 1000 Mhz boot speed")) 
-      			{
-			ensure_path_mounted("/system");
-			__system("mkdir -p /system/etc/devil");
-		    	__system("echo 1000000 > /system/etc/devil/bootspeed");
-    			ui_print("1000 Mhz as set boot speed\n");
-          		}
-               		break;
-            		}
 
-			case 5:
+			case 4:
             		{
                 	if (confirm_selection( "Set 800 Mhz as boot speed?", "Yes - 800 Mhz boot speed")) 
       			{
