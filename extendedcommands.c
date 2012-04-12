@@ -1149,6 +1149,7 @@ void show_devil_menu()
 			    "NSTools Settings",
 			    "USB Mode Settings",
 			    "Performance Settings",
+			    "Vibrator intensity",	
 			    "Debug Menu",	 	 
                             					NULL
     };
@@ -1183,7 +1184,14 @@ void show_devil_menu()
 				show_profile_menu();
 				break;
 			}
+
 			case 4:
+			{
+				show_vibrator_menu();
+				break;
+			}
+
+			case 5:
 			{
 				show_debug_menu();
 				break;
@@ -1459,6 +1467,94 @@ void show_profile_menu()
 }
 
 
+void show_vibrator_menu()
+{
+    static char* headers[] = {  "Devil Kernel - Vibrator intensity",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Max. intensity - 43640",
+				"Default intensity - 40140",
+				"Medium intensity - 31820",
+				"Low intensity - 25910",
+				"Min. intensity - 20000",
+    						NULL
+    };
+
+    for (;;)
+    	{
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        	{
+		case 0:
+            	{
+                	if (confirm_selection( "Set max. intensity?", "Yes - Max. intensity")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 43640 > /system/etc/devil/vibrator");
+    			ui_print("Max. intensity set\n");
+          		}
+               break;
+            	}
+		case 1:
+            	{
+                	if (confirm_selection( "Set default intensity?", "Yes - default intensity")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 40140 > /system/etc/devil/vibrator");
+    			ui_print("Default intensity set\n");
+          		}
+               break;
+            	}
+		case 2:
+            	{
+                	if (confirm_selection( "Set medium intensity?", "Yes - medium intensity")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 31820 > /system/etc/devil/vibrator");
+    			ui_print("Medium intensity set\n");
+          		}
+               break;
+            	}
+		case 3:
+            	{
+                	if (confirm_selection( "Set low intensity?", "Yes - low intensity")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 25910 > /system/etc/devil/vibrator");
+    			ui_print("Low intensity set\n");
+          		}
+               break;
+            	}
+		case 4:
+            	{
+                	if (confirm_selection( "Set min intensity?", "Yes - min intensity")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 20000 > /system/etc/devil/vibrator");
+    			ui_print("Min. intensity set\n");
+          		}
+               break;
+            	}
+
+
+
+
+		}
+	}
+}
+
+
+
+
 void show_debug_menu()
 {
     static char* headers[] = {  "Devil Kernel - Debug menu",
@@ -1580,12 +1676,12 @@ void show_bootspeed_menu()
 
 			case 3:
             		{
-                	if (confirm_selection( "Set 1080 Mhz as boot speed?", "Yes - 1080 Mhz boot speed")) 
+                	if (confirm_selection( "Set 1000 Mhz as boot speed?", "Yes - 1000 Mhz boot speed")) 
       			{
 			ensure_path_mounted("/system");
 			__system("mkdir -p /system/etc/devil");
-		    	__system("echo 1080000 > /system/etc/devil/bootspeed");
-    			ui_print("1080 Mhz as set boot speed\n");
+		    	__system("echo 1000000 > /system/etc/devil/bootspeed");
+    			ui_print("1000 Mhz as set boot speed\n");
           		}
                		break;
             		}
