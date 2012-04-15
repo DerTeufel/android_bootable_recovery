@@ -1149,7 +1149,7 @@ void show_devil_menu()
 			    "NSTools Settings",
 			    "USB Mode Settings",
 			    "Performance Settings",
-			    "Vibrator intensity",	
+			    "Misc Menu",	
 			    "Debug Menu",	 	 
                             					NULL
     };
@@ -1187,9 +1187,10 @@ void show_devil_menu()
 
 			case 4:
 			{
-				show_vibrator_menu();
+				show_misc_menu();
 				break;
 			}
+
 
 			case 5:
 			{
@@ -1467,6 +1468,45 @@ void show_profile_menu()
 }
 
 
+void show_misc_menu()
+{
+    static char* headers[] = {  "Devil Kernel - Misc menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Vibrator intensity",
+    						"Set WiFi Mode",
+    						"Set Fsync Mode",
+    						NULL
+    };
+
+    for (;;)
+    	{
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        	{
+			case 0:
+			{
+				show_vibrator_menu();
+				break;
+			}
+			case 1:
+			{
+				show_wifi_menu();
+				break;
+			}
+			case 2:
+			{
+				show_fsync_menu();
+				break;
+			}
+		}
+	}
+}
+
 void show_vibrator_menu()
 {
     static char* headers[] = {  "Devil Kernel - Vibrator intensity",
@@ -1491,57 +1531,42 @@ void show_vibrator_menu()
         	{
 		case 0:
             	{
-                	if (confirm_selection( "Set max. intensity?", "Yes - Max. intensity")) 
-      			{
 			ensure_path_mounted("/system");
 			__system("mkdir -p /system/etc/devil");
 		    	__system("echo 43640 > /system/etc/devil/vibrator");
     			ui_print("Max. intensity set\n");
-          		}
                break;
             	}
 		case 1:
             	{
-                	if (confirm_selection( "Set default intensity?", "Yes - default intensity")) 
-      			{
 			ensure_path_mounted("/system");
 			__system("mkdir -p /system/etc/devil");
 		    	__system("echo 40140 > /system/etc/devil/vibrator");
     			ui_print("Default intensity set\n");
-          		}
                break;
             	}
 		case 2:
             	{
-                	if (confirm_selection( "Set medium intensity?", "Yes - medium intensity")) 
-      			{
 			ensure_path_mounted("/system");
 			__system("mkdir -p /system/etc/devil");
 		    	__system("echo 31820 > /system/etc/devil/vibrator");
     			ui_print("Medium intensity set\n");
-          		}
                break;
             	}
 		case 3:
             	{
-                	if (confirm_selection( "Set low intensity?", "Yes - low intensity")) 
-      			{
 			ensure_path_mounted("/system");
 			__system("mkdir -p /system/etc/devil");
 		    	__system("echo 25910 > /system/etc/devil/vibrator");
     			ui_print("Low intensity set\n");
-          		}
                break;
             	}
 		case 4:
             	{
-                	if (confirm_selection( "Set min intensity?", "Yes - min intensity")) 
-      			{
 			ensure_path_mounted("/system");
 			__system("mkdir -p /system/etc/devil");
 		    	__system("echo 20000 > /system/etc/devil/vibrator");
     			ui_print("Min. intensity set\n");
-          		}
                break;
             	}
 
@@ -1552,6 +1577,85 @@ void show_vibrator_menu()
 	}
 }
 
+
+void show_wifi_menu()
+{
+    static char* headers[] = {  "Devil Kernel - WiFi menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "PM_FAST Mode - better WiFi signal",
+    						"PM_MAX Mode - better battery life",
+    						NULL
+    };
+
+    for (;;)
+    	{
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        	{
+		case 0:
+            	{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 1 > /system/etc/devil/wifi");
+    			ui_print("Wifi mode set to: PM_FAST\n");
+               break;
+            	}
+		case 1:
+            	{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 0 > /system/etc/devil/wifi");
+    			ui_print("Wifi mode set to: PM_MAX\n");
+               break;
+            	}
+	   }
+	}
+}
+
+
+void show_fsync_menu()
+{
+    static char* headers[] = {  "Devil Kernel - Fsync menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Fsync enabled - default, safe, but slower",
+    						"Fsync disabled - faster, risk of data loss ",
+    						NULL
+    };
+
+    for (;;)
+    	{
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        	{
+		case 0:
+            	{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 1 > /system/etc/devil/fsync");
+    			ui_print("fsync enabled\n");
+               break;
+            	}
+		case 1:
+            	{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 0 > /system/etc/devil/fsync");
+    			ui_print("fsync disabled\n");
+               break;
+            	}
+	   }
+	}
+}
 
 
 
