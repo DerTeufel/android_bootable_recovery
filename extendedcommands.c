@@ -367,21 +367,33 @@ void show_nandroid_restore_menu(const char* path)
 }
 
 #ifndef BOARD_UMS_LUNFILE
-#define BOARD_UMS_LUNFILE  "/sys/devices/platform/s3c-usbgadget/gadget/lun0/file"
+#define BOARD_UMS_LUNFILE	"/sys/class/android_usb/android0/f_mass_storage/lun0/file"
 #endif
 
-void show_mount_usb_storage_menu()
+void show_mount_usb_storage_menu(char path[10])
 {
     int fd;
-    Volume *vol = volume_for_path("/sdcard");
-    if ((fd = open(BOARD_UMS_LUNFILE, O_WRONLY)) < 0) {
-        LOGE("Unable to open ums lunfile (%s)", strerror(errno));
+    char lunfile_path[255];
+    
+	Volume *vol = volume_for_path(path);
+	
+	//LOGE("PATH = %s", path);
+	
+	if(strcmp(path,"/sdcard")==0)
+		strcpy(lunfile_path,"/sys/devices/platform/s3c-usbgadget/gadget/lun1/file");
+	if(strcmp(path,"/emmc")==0)
+		strcpy(lunfile_path,"/sys/devices/platform/s3c-usbgadget/gadget/lun0/file");
+	
+	//LOGE("LUN PATH = %s", lunfile_path);
+	
+    if ((fd = open(lunfile_path, O_WRONLY)) < 0) {
+        LOGE("\nUnable to open ums lunfile (%s)", strerror(errno));
         return -1;
     }
 
     if ((write(fd, vol->device, strlen(vol->device)) < 0) &&
         (!vol->device2 || (write(fd, vol->device, strlen(vol->device2)) < 0))) {
-        LOGE("Unable to write to ums lunfile (%s)", strerror(errno));
+        LOGE("\nUnable to write to ums lunfile (%s)", strerror(errno));
         close(fd);
         return -1;
     }
@@ -401,7 +413,7 @@ void show_mount_usb_storage_menu()
             break;
     }
 
-    if ((fd = open(BOARD_UMS_LUNFILE, O_WRONLY)) < 0) {
+    if ((fd = open(lunfile_path, O_WRONLY)) < 0) {
         LOGE("Unable to open ums lunfile (%s)", strerror(errno));
         return -1;
     }
@@ -704,8 +716,9 @@ void show_partition_menu()
     		}
 
         if (!is_data_media()) {
-          options[mountable_volumes + formatable_volumes] = "mount USB storage";
-          options[mountable_volumes + formatable_volumes + 1] = NULL;
+		options[mountable_volumes + formatable_volumes] = "mount internal USB storage";
+		options[mountable_volumes + formatable_volumes + 1] = "mount external USB storage";
+		options[mountable_volumes + formatable_volumes + 2] = NULL;
         }
         else {
           options[mountable_volumes + formatable_volumes] = NULL;
@@ -714,11 +727,17 @@ void show_partition_menu()
         int chosen_item = get_menu_selection(headers, &options, 0, 0);
         if (chosen_item == GO_BACK)
             break;
-        if (chosen_item == (mountable_volumes+formatable_volumes)) {
-            show_mount_usb_storage_menu();
+        if (chosen_item == (mountable_volumes+formatable_volumes))
+        {
+            show_mount_usb_storage_menu("/sdcard");
         }
-        else if (chosen_item < mountable_volumes) {
-			      MountMenuEntry* e = &mount_menue[chosen_item];
+        if (chosen_item == ((mountable_volumes+formatable_volumes)+1))
+        {
+            show_mount_usb_storage_menu("/emmc");
+        }
+        else if (chosen_item < mountable_volumes)
+        {
+			MountMenuEntry* e = &mount_menue[chosen_item];
             Volume* v = e->v;
 
             if (is_path_mounted(v->mount_point))
@@ -922,6 +941,9 @@ void show_advanced_menu()
                             "Key Test",
                             "Show log",
                             "Partition SD Card",
+#ifdef BOARD_HAS_SDCARD_INTERNAL
+                            "Partition External SD Card",
+#endif
                             "Fix Permissions",
                             NULL
     };
@@ -942,12 +964,12 @@ void show_advanced_menu()
             {
                 if (0 != ensure_path_mounted("/data"))
                     break;
-                ensure_path_mounted("/sd-ext");
+               // ensure_path_mounted("/sd-ext");
                 ensure_path_mounted("/cache");
                 if (confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
                     __system("rm -r /data/dalvik-cache");
                     __system("rm -r /cache/dalvik-cache");
-                    __system("rm -r /sd-ext/dalvik-cache");
+                   // __system("rm -r /sd-ext/dalvik-cache");
                     ui_print("Dalvik Cache wiped.\n");
                 }
                 ensure_path_unmounted("/data");
@@ -1803,7 +1825,7 @@ void create_fstab()
     write_fstab_root("/emmc", file);
     write_fstab_root("/system", file);
     write_fstab_root("/sdcard", file);
-    write_fstab_root("/sd-ext", file);
+    //write_fstab_root("/sd-ext", file);
     fclose(file);
     LOGI("Completed outputting fstab.\n");
 }
