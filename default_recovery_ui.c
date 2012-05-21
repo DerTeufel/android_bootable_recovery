@@ -30,7 +30,6 @@ char* MENU_ITEMS[] = { "reboot system now",
                        "mounts and storage",
                        "advanced",
 			"DEVIL",
-			"Filemanager",
                        "power off",
                        NULL };
 

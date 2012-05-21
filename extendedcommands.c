@@ -1075,8 +1075,7 @@ void show_advanced_menu()
             }
             case 7:
             {
-                static char* ext_sizes[] = { "0M",
-					     "128M",
+                static char* ext_sizes[] = { "128M",
                                              "256M",
                                              "512M",
                                              "1024M",
@@ -1089,8 +1088,6 @@ void show_advanced_menu()
                                               "64M",
                                               "128M",
                                               "256M",
-                                              "512M",
-                                              "1024M",
                                               NULL };
 
                 static char* ext_headers[] = { "Data Size", "", NULL };
@@ -1163,41 +1160,41 @@ void show_vibrator_menu()
         	{
 		case 0:
             	{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 43640 > /data/local/devil/vibrator");
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 43640 > /system/etc/devil/vibrator");
     			ui_print("Max. intensity set\n");
                break;
             	}
 		case 1:
             	{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 40140 > /data/local/devil/vibrator");
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 40140 > /system/etc/devil/vibrator");
     			ui_print("Default intensity set\n");
                break;
             	}
 		case 2:
             	{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 31820 > /data/local/devil/vibrator");
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 31820 > /system/etc/devil/vibrator");
     			ui_print("Medium intensity set\n");
                break;
             	}
 		case 3:
             	{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 25910 > /data/local/devil/vibrator");
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 25910 > /system/etc/devil/vibrator");
     			ui_print("Low intensity set\n");
                break;
             	}
 		case 4:
             	{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 20000 > /data/local/devil/vibrator");
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 20000 > /system/etc/devil/vibrator");
     			ui_print("Min. intensity set\n");
                break;
             	}
@@ -1231,17 +1228,17 @@ void show_wifi_menu()
         	{
 		case 0:
             	{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 1 > /data/local/devil/wifi");
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 1 > /system/etc/devil/wifi");
     			ui_print("Wifi mode set to: PM_FAST\n");
                break;
             	}
 		case 1:
             	{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 0 > /data/local/devil/wifi");
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 0 > /system/etc/devil/wifi");
     			ui_print("Wifi mode set to: PM_MAX\n");
                break;
             	}
@@ -1271,17 +1268,17 @@ void show_fsync_menu()
         	{
 		case 0:
             	{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 1 > /data/local/devil/fsync");
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 1 > /system/etc/devil/fsync");
     			ui_print("fsync enabled\n");
                break;
             	}
 		case 1:
             	{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 0 > /data/local/devil/fsync");
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 0 > /system/etc/devil/fsync");
     			ui_print("fsync disabled\n");
                break;
             	}
@@ -1313,39 +1310,45 @@ void show_debug_menu()
 		    
 			case 0:
             		{
-				if ( 0 == ensure_path_mounted("/sdcard") )
-				{          
-					__system("mkdir -p /sdcard/devil");	
-					__system("cp /proc/last_kmsg /sdcard/devil/");
-					__system("cp /proc/cmdline /sdcard/devil/");
-					ui_print("last_kmsg and /proc/cmdline copied to /sdcard/devil\n");
-					ensure_path_unmounted("/sdcard");
-				}
-				else
-				{
-					ui_print("Unable to mount SD Card - nothing done!\n");
-				}
+                		if (confirm_selection( "Copy last_kmsg to SD Card?", "Yes - Copy last_kmsg")) 
+					{
+						if ( 0 == ensure_path_mounted("/sdcard") )
+						{          
+						__system("mkdir -p /sdcard/devil");	
+						__system("cp /proc/last_kmsg /sdcard/devil/");
+						__system("cp /proc/cmdline /sdcard/devil/");
+						ui_print("last_kmsg and /proc/cmdline copied to /sdcard/devil\n");
+						ensure_path_unmounted("/sdcard");
+						}
+						else
+						{
+						ui_print("Unable to mount SD Card - nothing done!\n");
+						}
+					}
                 	break;
             		}
 
 			case 1:
             		{
-				if ( 0 == ensure_path_mounted("/sdcard") )
-				{   
-					mkdir("/sdcard/devil", S_IRWXU);
-					__system("cp /tmp/recovery.log /sdcard/devil/recovery.log");
-					ui_print("/tmp/recovery.log was copied to /sdcard/devil/recovery.log.\n");
-				}
-				else
-				{
-					ui_print("Unable to mount SD Card - nothing done!\n");
-				}
+                		if (confirm_selection( "Copy recovery log to SD Card?", "Yes - Copy log")) 
+					{
+						if ( 0 == ensure_path_mounted("/sdcard") )
+						{   
+						mkdir("/sdcard/devil", S_IRWXU);
+						__system("cp /tmp/recovery.log /sdcard/devil/recovery.log");
+						ui_print("/tmp/recovery.log was copied to /sdcard/devil/recovery.log.\n");
+						}
+						else
+						{
+						ui_print("Unable to mount SD Card - nothing done!\n");
+						}
+					}
 			break;
 			}
 		}
 	}
 }
-/*
+
 void show_bootspeed_menu()
 {
     static char* headers[] = {  "Devil Kernel - Bootspeed menu",
@@ -1370,55 +1373,70 @@ void show_bootspeed_menu()
         	{
 			case 0:
             		{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 1400000 > /data/local/devil/bootspeed");
+                	if (confirm_selection( "Set 1400 Mhz as boot speed?", "Yes - 1400 Mhz boot speed")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 1400000 > /system/etc/devil/bootspeed");
     			ui_print("1400 Mhz as set boot speed\n");
+          		}
                		break;
             		}
 
 			case 1:
             		{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 1300000 > /data/local/devil/bootspeed");
+                	if (confirm_selection( "Set 1300 Mhz as boot speed?", "Yes - 1300 Mhz boot speed")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 1300000 > /system/etc/devil/bootspeed");
     			ui_print("1300 Mhz as set boot speed\n");
+          		}
                		break;
             		}
 
 			case 2:
             		{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 1200000 > /data/local/devil/bootspeed");
+                	if (confirm_selection( "Set 1200 Mhz as boot speed?", "Yes - 1200 Mhz boot speed")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 1200000 > /system/etc/devil/bootspeed");
     			ui_print("1200 Mhz as set boot speed\n");
+          		}
                		break;
             		}
 
 			case 3:
             		{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 1000000 > /data/local/devil/bootspeed");
+                	if (confirm_selection( "Set 1000 Mhz as boot speed?", "Yes - 1000 Mhz boot speed")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 1000000 > /system/etc/devil/bootspeed");
     			ui_print("1000 Mhz as set boot speed\n");
+          		}
                		break;
             		}
 
 
 			case 4:
             		{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 800000 > /data/local/devil/bootspeed");
+                	if (confirm_selection( "Set 800 Mhz as boot speed?", "Yes - 800 Mhz boot speed")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 800000 > /system/etc/devil/bootspeed");
     			ui_print("800 Mhz as set boot speed\n");
+          		}
                		break;
             		}
 		}
 	}
 }
 
-*/
-/*
+
+
 void show_liveoc_menu()
 {
     static char* headers[] = {  "Devil Kernel - Live_oc Menu",
@@ -1440,24 +1458,30 @@ void show_liveoc_menu()
         	{
 			case 0:
             		{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 0 > /data/local/devil/live_oc_mode");
+                	if (confirm_selection( "Use normal live_oc?", "Yes - use the normal live_oc")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 0 > /system/etc/devil/live_oc_mode");
     			ui_print("Normal live_oc set as default\n");
+          		}
                		break;
             		}
 
 			case 1:
             		{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 1 > /data/local/devil/live_oc_mode");
+                	if (confirm_selection( "Use normal selective live_oc?", "Yes - use the selective mod")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo 1 > /system/etc/devil/live_oc_mode");
     			ui_print("Selective live_oc set as default\n");
+          		}
                		break;
             		}
 		}
 	}
-}*/
+}
 
 void show_misc_menu()
 {
@@ -1523,7 +1547,7 @@ void show_initd_menu()
             		{
 					if (confirm_selection( "Confirm clearing?", "Yes - Clear init.d")) 
 					{
-//						ensure_path_mounted("/system");
+						ensure_path_mounted("/system");
 						ui_print("Clearing init.d...\n");
 						__system("rm /system/etc/init.d/*");
 						ui_print("Done!\n");
@@ -1533,6 +1557,8 @@ void show_initd_menu()
 
 			case 1:
             		{
+					if (confirm_selection( "Backup init.d to Sd Card?", "Yes - Backup init.d")) 
+					{
 						if ( 0 == ensure_path_mounted("/sdcard") )
 						{          
 						__system("mkdir -p /sdcard/devil/backup_init.d");	
@@ -1545,12 +1571,15 @@ void show_initd_menu()
 						{
 						ui_print("Unable to mount SD Card - nothing done!");
 						}
+					}
 					break;
             		}
 
 
 			case 2:
             		{
+					if (confirm_selection( "Restore init.d from Sd Card?", "Yes - Restore init.d")) 
+					{
 						if ( 0 == ensure_path_mounted("/sdcard") )
 						{          
 						__system("cp /sdcard/devil/backup_init.d/* /system/etc/init.d/");
@@ -1561,6 +1590,7 @@ void show_initd_menu()
 						{
 						ui_print("Unable to mount SD Card - nothing done!");
 						}
+					}
 					break;
             		}
 
@@ -1609,9 +1639,9 @@ void show_storage_menu()
 
 void show_nstools_menu()
 {
-//    ensure_path_mounted("/system");
-//   ensure_path_mounted("/data");
-//    ensure_path_mounted("/datadata");    
+    ensure_path_mounted("/system");
+    ensure_path_mounted("/data");
+    ensure_path_mounted("/datadata");    
 
     static char* headers[] = {  "Devil Kernel - NSTools Menu",
 								"",
@@ -1662,11 +1692,14 @@ void show_nstools_menu()
 
 		case 2:
             	{
+                if (confirm_selection( "Restore default profile?", "Yes - Restore NSTools profile")) 
+      			{
               		ensure_path_mounted("/data");
         		ensure_path_mounted("/datadata");
               		ui_print("Moving NSTools default profile back...\n");
               		__system("cp /data/local/mobi.cyann.nstools/backup/default /data/data/mobi.cyann.nstools/settings/");
               		ui_print("Done!\n");
+          		}
                	break;
             	}
 	    }
@@ -1677,8 +1710,8 @@ void show_nstools_menu()
 void show_profile_menu()
 {
     ensure_path_mounted("/system");
-//    ensure_path_mounted("/data");
-//    ensure_path_mounted("/datadata");    
+    ensure_path_mounted("/data");
+    ensure_path_mounted("/datadata");    
 
     static char* headers[] = {  "Devil Kernel - Performance Menu",
 								"",
@@ -1688,8 +1721,8 @@ void show_profile_menu()
     static char* list[] = { "Smooth Settings",
 			    "Normal Settings",
 			    "Powersave Settings",
-//			    "Set max. frequency used for boot", 
-//			    "Set live_oc mode", 		
+			    "Set max. frequency used for boot", 
+			    "Set live_oc mode", 		
 								NULL
     };
 
@@ -1702,42 +1735,51 @@ void show_profile_menu()
 	{
 		case 0:
             	{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 1 > /data/local/devil/profile");
+                	if (confirm_selection( "Load SMOOTH profile?", "Yes - Load SMOOTH")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo smooth > /system/etc/devil/profile");
     			ui_print("SMOOTH profile activated\n");
+          		}
                	break;
             	}
 
 		case 1:
             	{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 0 > /data/local/devil/profile");
+                	if (confirm_selection( "Load NORMAL profile?", "Yes - Load NORMAL")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo normal > /system/etc/devil/profile");
     			ui_print("NORMAL profile activated\n");
+          		}
                break;
             	}
 
 		case 2:
             	{
-//			ensure_path_mounted("/system");
-			__system("mkdir -p /data/local/devil");
-		    	__system("echo 2 > /data/local/devil/profile");
+                if (confirm_selection( "Load POWERSAVE profile?", "Yes - Load POWERSAVE")) 
+      			{
+			ensure_path_mounted("/system");
+			__system("mkdir -p /system/etc/devil");
+		    	__system("echo powersave > /system/etc/devil/profile");
     			ui_print("POWERSAVE profile activated\n");
+          		}
                break;
             	}
 
-/*		case 3:
+		case 3:
 		{
 			show_bootspeed_menu();
 			break;
 		}
-*/
-/*		case 4:
+
+		case 4:
 		{
 			show_liveoc_menu();
 			break;
-		}*/
+		}
 	}
     }
 }
@@ -1748,7 +1790,7 @@ void show_devil_menu()
 {
     ensure_path_mounted("/system");
     ensure_path_mounted("/data");
-//    ensure_path_mounted("/datadata");    
+    ensure_path_mounted("/datadata");    
 
     static char* headers[] = {  "Devil Kernel - Extras Menu",
 								"",
@@ -1810,7 +1852,8 @@ void show_devil_menu()
 
         }
     }
-    
+    //ensure_path_unmounted("/system");
+    //ensure_path_unmounted("/data");    
 }
 
 /* main menu end */

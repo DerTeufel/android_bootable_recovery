@@ -62,7 +62,6 @@ static const char *SDCARD_ROOT = "/sdcard";
 static int allow_display_toggle = 1;
 static int poweroff = 0;
 static const char *SDCARD_PACKAGE_FILE = "/sdcard/update.zip";
-static const char *FILEMANAGER = "/tmp/aromafm.zip";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
 
@@ -750,10 +749,6 @@ prompt_and_wait() {
 	    case ITEM_DEVIL:
 		show_devil_menu();
 		break;
-
-	   case ITEM_FILEMANAGER:
-                install_zip(FILEMANAGER);
-                break;
                 
             case ITEM_POWEROFF:
                 poweroff = 1;
