@@ -214,13 +214,12 @@ static void draw_progress_locked()
 // Should only be called with gUpdateMutex locked.
 static void draw_virtualkeys_locked()
 {
-  /*  gr_surface surface = gVirtualKeys;
+    gr_surface surface = gVirtualKeys;
     int iconWidth = gr_get_width(surface);
     int iconHeight = gr_get_height(surface);
     int iconX = (gr_fb_width() - iconWidth) / 2;
     int iconY = (gr_fb_height() - iconHeight);
     gr_blit(surface, 0, 0, iconWidth, iconHeight, iconX, iconY);
-*/
 }
 
 #define LEFT_ALIGN 0

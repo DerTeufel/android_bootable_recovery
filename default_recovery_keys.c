@@ -41,8 +41,8 @@ int device_handle_key(int key_code, int visible) {
                 if (ui_get_showing_back_button()) {
                     return SELECT_ITEM;
                 }
-                //if (!get_allow_toggle_display() && ui_menu_level > 0) {
-				if (!get_allow_toggle_display()) {
+                if (!get_allow_toggle_display() && ui_menu_level > 0) {
+//				if (!get_allow_toggle_display()) {
                     return GO_BACK;
                 }
                 break;
