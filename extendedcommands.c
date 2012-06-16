@@ -941,9 +941,7 @@ void show_advanced_menu()
                             "Key Test",
                             "Show log",
                             "Partition SD Card",
-#ifdef BOARD_HAS_SDCARD_INTERNAL
                             "Partition External SD Card",
-#endif
                             "Fix Permissions",
                             NULL
     };
