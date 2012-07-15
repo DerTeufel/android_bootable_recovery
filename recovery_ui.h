@@ -101,4 +101,6 @@ get_menu_selection(char** headers, char** items, int menu_only, int initial_sele
 void
 set_sdcard_update_bootloader_message();
 
+extern int ui_handle_key(int key, int visible);
+
 #endif
