@@ -79,8 +79,7 @@ char* INSTALL_MENU_ITEMS[] = {  "choose zip from sdcard",
                                 "apply /sdcard/update.zip (internal)",
                                 "apply /emmc/update.zip (external)",
                                 "toggle signature verification",
-                                "toggle script asserts",
-								"choose zip from external sdcard",
+
                                 NULL };
 #define ITEM_CHOOSE_ZIP       0
 #define ITEM_APPLY_SDCARD     1
