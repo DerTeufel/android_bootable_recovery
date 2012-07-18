@@ -1104,6 +1104,7 @@ int get_batt_stats(void)
             level = 0;
     }
     return level;
+}
 
 int ui_is_showing_back_button() {
     return gShowBackButton && !ui_root_menu;
