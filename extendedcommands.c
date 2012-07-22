@@ -48,7 +48,6 @@
 int signature_check_enabled = 1;
 int script_assert_enabled = 1;
 static const char *SDCARD_UPDATE_FILE = "/sdcard/update.zip";
-static const char *EMMC_UPDATE_FILE = "/emmc/update.zip";
 
 void
 toggle_signature_check()
@@ -77,9 +76,8 @@ int install_zip(const char* packagefilepath)
 
 #define ITEM_CHOOSE_ZIP       0
 #define ITEM_APPLY_SDCARD     1
-#define ITEM_APPLY_EMMC       2
-#define ITEM_SIG_CHECK        3
-#define ITEM_CHOOSE_ZIP_INT   4
+#define ITEM_SIG_CHECK        2
+#define ITEM_CHOOSE_ZIP_INT   3
 
 
 void show_install_update_menu()
@@ -117,12 +115,6 @@ void show_install_update_menu()
             {
                 if (confirm_selection("Confirm install?", "Yes - Install /sdcard/update.zip"))
                     install_zip(SDCARD_UPDATE_FILE);
-                break;
-            }
-            case ITEM_APPLY_EMMC:
-            {
-                if (confirm_selection("Confirm install?", "Yes - Install /emmc/update.zip"))
-                    install_zip(EMMC_UPDATE_FILE);
                 break;
             }
             case ITEM_CHOOSE_ZIP:
@@ -405,33 +397,21 @@ void show_nandroid_delete_menu(const char* path)
 }
 
 #ifndef BOARD_UMS_LUNFILE
-#define BOARD_UMS_LUNFILE	"/sys/class/android_usb/android0/f_mass_storage/lun0/file"
+#define BOARD_UMS_LUNFILE	"/sys/devices/platform/usb_mass_storage/lun0/file"
 #endif
 
-void show_mount_usb_storage_menu(char path[10])
+void show_mount_usb_storage_menu()
 {
     int fd;
-    char lunfile_path[255];
-    
-	Volume *vol = volume_for_path(path);
-	
-	//LOGE("PATH = %s", path);
-	
-	if(strcmp(path,"/sdcard")==0)
-		strcpy(lunfile_path,"/sys/devices/platform/s3c-usbgadget/gadget/lun1/file");
-	if(strcmp(path,"/emmc")==0)
-		strcpy(lunfile_path,"/sys/devices/platform/s3c-usbgadget/gadget/lun0/file");
-	
-	//LOGE("LUN PATH = %s", lunfile_path);
-	
-    if ((fd = open(lunfile_path, O_WRONLY)) < 0) {
-        LOGE("\nUnable to open ums lunfile (%s)", strerror(errno));
+    Volume *vol = volume_for_path("/sdcard");
+    if ((fd = open(BOARD_UMS_LUNFILE, O_WRONLY)) < 0) {
+        LOGE("Unable to open ums lunfile (%s)", strerror(errno));
         return -1;
     }
 
     if ((write(fd, vol->device, strlen(vol->device)) < 0) &&
         (!vol->device2 || (write(fd, vol->device, strlen(vol->device2)) < 0))) {
-        LOGE("\nUnable to write to ums lunfile (%s)", strerror(errno));
+        LOGE("Unable to write to ums lunfile (%s)", strerror(errno));
         close(fd);
         return -1;
     }
@@ -451,7 +431,7 @@ void show_mount_usb_storage_menu(char path[10])
             break;
     }
 
-    if ((fd = open(lunfile_path, O_WRONLY)) < 0) {
+    if ((fd = open(BOARD_UMS_LUNFILE, O_WRONLY)) < 0) {
         LOGE("Unable to open ums lunfile (%s)", strerror(errno));
         return -1;
     }
@@ -753,9 +733,8 @@ void show_partition_menu()
     		}
 
         if (!is_data_media()) {
-		options[mountable_volumes + formatable_volumes] = "mount internal USB storage";
-		options[mountable_volumes + formatable_volumes + 1] = "mount external USB storage";
-		options[mountable_volumes + formatable_volumes + 2] = NULL;
+          options[mountable_volumes + formatable_volumes] = "mount USB storage";
+          options[mountable_volumes + formatable_volumes + 1] = NULL;
         }
         else {
           options[mountable_volumes + formatable_volumes] = NULL;
@@ -764,17 +743,12 @@ void show_partition_menu()
         int chosen_item = get_menu_selection(headers, &options, 0, 0);
         if (chosen_item == GO_BACK)
             break;
-        if (chosen_item == (mountable_volumes+formatable_volumes))
-        {
-            show_mount_usb_storage_menu("/sdcard");
+        if (chosen_item == (mountable_volumes+formatable_volumes)) {
+
+            show_mount_usb_storage_menu();
         }
-        if (chosen_item == ((mountable_volumes+formatable_volumes)+1))
-        {
-            show_mount_usb_storage_menu("/emmc");
-        }
-        else if (chosen_item < mountable_volumes)
-        {
-			MountMenuEntry* e = &mount_menue[chosen_item];
+        else if (chosen_item < mountable_volumes) {
+			      MountMenuEntry* e = &mount_menue[chosen_item];
             Volume* v = e->v;
 
             if (is_path_mounted(v->mount_point))
@@ -1034,8 +1008,8 @@ void show_advanced_menu()
                             "Key Test",
                             "Show log",
                             "Partition SD Card",
-                            "Partition External SD Card",
                             "Fix Permissions",
+			    "Partition Internal SD Card",
                             NULL
     };
 
@@ -1055,7 +1029,7 @@ void show_advanced_menu()
             {
                 if (0 != ensure_path_mounted("/data"))
                     break;
-               // ensure_path_mounted("/sd-ext");
+               //ensure_path_mounted("/sd-ext");
                 ensure_path_mounted("/cache");
                 if (confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
                     __system("rm -r /data/dalvik-cache");
@@ -1097,7 +1071,8 @@ void show_advanced_menu()
             }
             case 6:
             {
-                static char* ext_sizes[] = { "128M",
+                static char* ext_sizes[] = { "0M",
+					     "128M",
                                              "256M",
                                              "512M",
                                              "1024M",
@@ -1110,6 +1085,8 @@ void show_advanced_menu()
                                               "64M",
                                               "128M",
                                               "256M",
+                                              "512M",
+                                              "1024M",
                                               NULL };
 
                 static char* ext_headers[] = { "Ext Size", "", NULL };
@@ -1140,8 +1117,16 @@ void show_advanced_menu()
             }
             case 7:
             {
-                static char* ext_sizes[] = { "0M",
-					     "128M",
+                ensure_path_mounted("/system");
+                ensure_path_mounted("/data");
+                ui_print("Fixing permissions...\n");
+                __system("fix_permissions");
+                ui_print("Done!\n");
+                break;
+            }
+            case 8:
+            {
+                static char* ext_sizes[] = { "128M",
                                              "256M",
                                              "512M",
                                              "1024M",
@@ -1154,8 +1139,6 @@ void show_advanced_menu()
                                               "64M",
                                               "128M",
                                               "256M",
-                                              "512M",
-                                              "1024M",
                                               NULL };
 
                 static char* ext_headers[] = { "Data Size", "", NULL };
@@ -1177,20 +1160,11 @@ void show_advanced_menu()
                 char cmd[PATH_MAX];
                 setenv("SDPATH", sddevice, 1);
                 sprintf(cmd, "sdparted -es %s -ss %s -efs ext3 -s", ext_sizes[ext_size], swap_sizes[swap_size]);
-                ui_print("Partitioning External SD Card... please wait...\n");
+                ui_print("Partitioning Internal SD Card... please wait...\n");
                 if (0 == __system(cmd))
                     ui_print("Done!\n");
                 else
-                    ui_print("An error occured while partitioning your External SD Card. Please see /tmp/recovery.log for more details.\n");
-                break;
-            }
-            case 8:
-            {
-                ensure_path_mounted("/system");
-                ensure_path_mounted("/data");
-                ui_print("Fixing permissions...\n");
-                __system("fix_permissions");
-                ui_print("Done!\n");
+                    ui_print("An error occured while partitioning your Internal SD Card. Please see /tmp/recovery.log for more details.\n");
                 break;
             }
         }
