@@ -1347,18 +1347,170 @@ void show_advanced_menu()
     }
 }
 
-void show_devil_menu()
-{
-    ensure_path_mounted("/system");
-    ensure_path_mounted("/data");    
+/* Devil menu */
 
-    static char* headers[] = {  "Devil Kernel - Extras Menu",
+
+void show_vibrator_menu()
+{
+    static char* headers[] = {  "Devil Kernel - Vibrator intensity",
 								"",
 								NULL
     };
 
-    static char* list[] = { "Delete NSTools Settings",
-                            "Clear init.d",
+    static char* list[] = { "Max. intensity - 43640",
+				"Default intensity - 40140",
+				"Medium intensity - 31820",
+				"Low intensity - 25910",
+				"Min. intensity - 20000",
+    						NULL
+    };
+
+    for (;;)
+    	{
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        	{
+		case 0:
+            	{
+//			ensure_path_mounted("/system");
+			__system("mkdir -p /data/local/devil");
+		    	__system("echo 43640 > /data/local/devil/vibrator");
+    			ui_print("Max. intensity set\n");
+               break;
+            	}
+		case 1:
+            	{
+//			ensure_path_mounted("/system");
+			__system("mkdir -p /data/local/devil");
+		    	__system("echo 40140 > /data/local/devil/vibrator");
+    			ui_print("Default intensity set\n");
+               break;
+            	}
+		case 2:
+            	{
+//			ensure_path_mounted("/system");
+			__system("mkdir -p /data/local/devil");
+		    	__system("echo 31820 > /data/local/devil/vibrator");
+    			ui_print("Medium intensity set\n");
+               break;
+            	}
+		case 3:
+            	{
+//			ensure_path_mounted("/system");
+			__system("mkdir -p /data/local/devil");
+		    	__system("echo 25910 > /data/local/devil/vibrator");
+    			ui_print("Low intensity set\n");
+               break;
+            	}
+		case 4:
+            	{
+//			ensure_path_mounted("/system");
+			__system("mkdir -p /data/local/devil");
+		    	__system("echo 20000 > /data/local/devil/vibrator");
+    			ui_print("Min. intensity set\n");
+               break;
+            	}
+
+
+
+
+		}
+	}
+}
+
+
+void show_wifi_menu()
+{
+    static char* headers[] = {  "Devil Kernel - WiFi menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "PM_FAST Mode - better WiFi signal",
+    						"PM_MAX Mode - better battery life",
+    						NULL
+    };
+
+    for (;;)
+    	{
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        	{
+		case 0:
+            	{
+//			ensure_path_mounted("/system");
+			__system("mkdir -p /data/local/devil");
+		    	__system("echo 1 > /data/local/devil/wifi");
+    			ui_print("Wifi mode set to: PM_FAST\n");
+               break;
+            	}
+		case 1:
+            	{
+//			ensure_path_mounted("/system");
+			__system("mkdir -p /data/local/devil");
+		    	__system("echo 0 > /data/local/devil/wifi");
+    			ui_print("Wifi mode set to: PM_MAX\n");
+               break;
+            	}
+	   }
+	}
+}
+
+
+void show_fsync_menu()
+{
+    static char* headers[] = {  "Devil Kernel - Fsync menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Fsync enabled - default, safe, but slower",
+    						"Fsync disabled - faster, risk of data loss ",
+    						NULL
+    };
+
+    for (;;)
+    	{
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        	{
+		case 0:
+            	{
+//			ensure_path_mounted("/system");
+			__system("mkdir -p /data/local/devil");
+		    	__system("echo 1 > /data/local/devil/fsync");
+    			ui_print("fsync enabled\n");
+               break;
+            	}
+		case 1:
+            	{
+//			ensure_path_mounted("/system");
+			__system("mkdir -p /data/local/devil");
+		    	__system("echo 0 > /data/local/devil/fsync");
+    			ui_print("fsync disabled\n");
+               break;
+            	}
+	   }
+	}
+}
+
+
+
+void show_debug_menu()
+{
+    static char* headers[] = {  "Devil Kernel - Debug menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Copy last_kmsg to SD Card",
+    						"Copy recovery log to SD Card",
     						NULL
     };
 
@@ -1369,35 +1521,383 @@ void show_devil_menu()
             break;
 		switch (chosen_item)
         {
-		case 0:
-            	{
-                if (confirm_selection( "Confirm clearing?", "Yes - Clear init.d")) 
-				{
-					ensure_path_mounted("/system");
-					ui_print("Clearing init.d...\n");
-					__system("rm -r /system/etc/init.d/*");
-					ui_print("Done!\n");
+
+			case 0:
+            		{
+				if ( 0 == ensure_path_mounted("/sdcard") )
+				{          
+					__system("mkdir -p /sdcard/devil");	
+					__system("cp /proc/last_kmsg /sdcard/devil/");
+					__system("cp /proc/cmdline /sdcard/devil/");
+					ui_print("last_kmsg and /proc/cmdline copied to /sdcard/devil\n");
+					ensure_path_unmounted("/sdcard");
 				}
+				else
+				{
+					ui_print("Unable to mount SD Card - nothing done!\n");
+				}
+                	break;
+            		}
+
+			case 1:
+            		{
+				if ( 0 == ensure_path_mounted("/sdcard") )
+				{   
+					mkdir("/sdcard/devil", S_IRWXU);
+					__system("cp /tmp/recovery.log /sdcard/devil/recovery.log");
+					ui_print("/tmp/recovery.log was copied to /sdcard/devil/recovery.log.\n");
+				}
+				else
+				{
+					ui_print("Unable to mount SD Card - nothing done!\n");
+				}
+			break;
+			}
+		}
+	}
+}
+
+
+void show_misc_menu()
+{
+    static char* headers[] = {  "Devil Kernel - Misc menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Vibrator intensity",
+    						"Set WiFi Mode",
+    						"Set Fsync Mode",
+    						NULL
+    };
+
+    for (;;)
+    	{
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        	{
+			case 0:
+			{
+				show_vibrator_menu();
+				break;
+			}
+			case 1:
+			{
+				show_wifi_menu();
+				break;
+			}
+			case 2:
+			{
+				show_fsync_menu();
+				break;
+			}
+		}
+	}
+}
+
+
+void show_initd_menu()
+{
+    static char* headers[] = {  "Devil Kernel - init.d menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Clear init.d",
+    						"Backup init.d to SD Card",
+						"Resore init.d from SD Card",
+    						NULL
+    };
+
+    for (;;)
+    	{
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        	{
+			case 0:
+            		{
+					if (confirm_selection( "Confirm clearing?", "Yes - Clear init.d")) 
+					{
+//						ensure_path_mounted("/system");
+						ui_print("Clearing init.d...\n");
+						__system("rm /system/etc/init.d/*");
+						ui_print("Done!\n");
+					}
+					break;
+            		}
+
+			case 1:
+            		{
+						if ( 0 == ensure_path_mounted("/sdcard") )
+						{          
+						__system("mkdir -p /sdcard/devil/backup_init.d");	
+						__system("cp /system/etc/init.d/* /sdcard/devil/backup_init.d/");
+						ui_print("init.d backed up\n");
+						ui_print("to /sdcard/devil/backup_init.d\n");
+						ensure_path_unmounted("/sdcard");
+						}
+						else
+						{
+						ui_print("Unable to mount SD Card - nothing done!");
+						}
+					break;
+            		}
+
+
+			case 2:
+            		{
+						if ( 0 == ensure_path_mounted("/sdcard") )
+						{          
+						__system("cp /sdcard/devil/backup_init.d/* /system/etc/init.d/");
+						ui_print("init.d restored\n");
+						ensure_path_unmounted("/sdcard");
+						}
+						else
+						{
+						ui_print("Unable to mount SD Card - nothing done!");
+						}
+					break;
+            		}
+
+		}
+	}
+}
+
+
+void show_storage_menu()
+{
+    static char* headers[] = {  "Devil Kernel - USB storage menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "MTP mode",
+    						"Mass storage mode",
+    						NULL
+    };
+
+    for (;;)
+    	{
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        	{
+		    	case 0:
+			{
+				__system("setprop persist.sys.usb.config mtp,adb");
+				ui_print("USB storage mode set to MTP\n");
+				break;
+			}
+			case 1:
+			{
+				__system("setprop persist.sys.usb.config mass_storage,adb");
+				ui_print("USB storage mode set to mass_storage\n");
+				break;
+			}
+		}
+	}
+}
+
+
+void show_nstools_menu()
+{
+
+    static char* headers[] = {  "Devil Kernel - NSTools Menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Delete NSTools Settings",
+			    "Remove NSTools default profile",
+			    "Restore NSTools default profile",
+								NULL
+    };
+
+    for (;;)
+    {
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        {
+	    	case 0:
+            	{
+                if (confirm_selection( "Confirm clearing?", "Yes - Clear NSTools settings")) 
+			{
+			ensure_path_mounted("/data");
+			ensure_path_mounted("/datadata");
+			ui_print("Clearing NSTools settings...\n");
+			__system("rm /data/data/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml");
+			__system("rm /datadata/mobi.cyann.nstools/shared_prefs/mobi.cyann.nstools_preferences.xml");
+			ui_print("Done!\n");
+			}
                 break;
+            	}   
+
+		case 1:
+            	{
+                if (confirm_selection( "Remove default profile?", "Yes - Remove NSTools profile")) 
+      			{
+              		ensure_path_mounted("/data");
+        		ensure_path_mounted("/datadata");
+			__system("mkdir -p /data/local/mobi.cyann.nstools/backup");
+              		ui_print("Moving NSTools default profile to Backup folder...\n");
+              		__system("cp /data/data/mobi.cyann.nstools/settings/default /data/local/mobi.cyann.nstools/backup/");
+			__system("rm /data/data/mobi.cyann.nstools/settings/default");
+              		ui_print("Done!\n");
+          		}
+               	break;
             	}
 
-	    	case 1:
-		{
-                if (confirm_selection( "Confirm clearing?", "Yes - Clear init.d")) 
-				{
-					ensure_path_mounted("/system");
-					ui_print("Clearing init.d...\n");
-					__system("rm -r /system/etc/init.d/*");
-					ui_print("Done!\n");
-				}
-                break;
-            	} 
+		case 2:
+            	{
+              		ensure_path_mounted("/data");
+        		ensure_path_mounted("/datadata");
+              		ui_print("Moving NSTools default profile back...\n");
+              		__system("cp /data/local/mobi.cyann.nstools/backup/default /data/data/mobi.cyann.nstools/settings/");
+              		ui_print("Done!\n");
+               	break;
+            	}
+	    }
+    }
+}
 
+
+void show_profile_menu()
+{
+    ensure_path_mounted("/system");
+//    ensure_path_mounted("/data");
+//    ensure_path_mounted("/datadata");    
+
+    static char* headers[] = {  "Devil Kernel - Performance Menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "Smooth Settings",
+			    "Normal Settings",
+			    "Powersave Settings",
+//			    "Set max. frequency used for boot", 
+//			    "Set live_oc mode", 		
+								NULL
+    };
+
+    for (;;)
+    {
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+	{
+		case 0:
+            	{
+//			ensure_path_mounted("/system");
+			__system("mkdir -p /data/local/devil");
+		    	__system("echo 1 > /data/local/devil/profile");
+    			ui_print("SMOOTH profile activated\n");
+               	break;
+            	}
+
+		case 1:
+            	{
+//			ensure_path_mounted("/system");
+			__system("mkdir -p /data/local/devil");
+		    	__system("echo 0 > /data/local/devil/profile");
+    			ui_print("NORMAL profile activated\n");
+               break;
+            	}
+
+		case 2:
+            	{
+//			ensure_path_mounted("/system");
+			__system("mkdir -p /data/local/devil");
+		    	__system("echo 2 > /data/local/devil/profile");
+    			ui_print("POWERSAVE profile activated\n");
+               break;
+            	}
+	}
+    }
+}
+
+/* main menu */
+
+void show_devil_menu()
+{
+    ensure_path_mounted("/system");
+    ensure_path_mounted("/data");
+//    ensure_path_mounted("/datadata");    
+
+    static char* headers[] = {  "Devil Kernel - Extras Menu",
+								"",
+								NULL
+    };
+
+    static char* list[] = { "init.d Menu",
+			    "NSTools Settings",
+			    "USB Mode Settings",
+			    "Performance Settings",
+			    "Misc Menu",	
+			    "Debug Menu",	 	 
+                            					NULL
+    };
+
+    for (;;)
+    {
+		int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+		switch (chosen_item)
+        	{
+			case 0:
+            		{
+				show_initd_menu();
+				break;
+            		}
+
+			case 1:
+			{
+				show_nstools_menu();
+				break;
+			}
+
+			case 2:
+			{
+				show_storage_menu();
+				break;
+			}
+
+			case 3:
+			{
+				show_profile_menu();
+				break;
+			}
+
+			case 4:
+			{
+				show_misc_menu();
+				break;
+			}
+
+
+			case 5:
+			{
+				show_debug_menu();
+				break;
+			}
         }
     }
-    //ensure_path_unmounted("/system");
-    //ensure_path_unmounted("/data");    
+    
 }
+
+/* main menu end */
+
+
+/* Devil Menu end */
 
 void write_fstab_root(char *path, FILE *file)
 {
