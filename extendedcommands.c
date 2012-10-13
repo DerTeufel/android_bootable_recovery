@@ -84,6 +84,8 @@ void write_string_to_file(const char* filename, const char* string) {
     fclose(file);
 }
 
+#define ABS_MT_POSITION_X 0x35  /* Center X ellipse position */
+
 void
 toggle_signature_check()
 {
@@ -1311,13 +1313,24 @@ void show_advanced_menu()
             {
                 ui_print("Outputting key codes.\n");
                 ui_print("Go back to end debugging.\n");
-                int key;
+                struct keyStruct{
+		    int code;
+   		    int x;
+      		    int y;
+       		}*key;
                 int action;
                 do
                 {
                     key = ui_wait_key();
-                    action = device_handle_key(key, 1);
-                    ui_print("Key: %d\n", key);
+		    if(key->code == ABS_MT_POSITION_X)
+		    {
+			action = device_handle_mouse(key, 1);
+			ui_print("Touch: X: %d\tY: %d\n", key->x, key->y);
+		    }
+		    else{
+                    	action = device_handle_key(key->code, 1);
+			ui_print("Key: %d\n", key->code);
+		    }
                 }
                 while (action != GO_BACK);
                 break;

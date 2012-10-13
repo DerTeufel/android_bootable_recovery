@@ -21,7 +21,6 @@
 #include <sys/poll.h>
 
 #include <linux/input.h>
-
 #include "minui.h"
 #include "cutils/log.h"
 
@@ -63,18 +62,19 @@ int ev_init(ev_callback input_cb, void *data)
             if(fd < 0) continue;
 
             /* read the evbits of the input device */
-            if (ioctl(fd, EVIOCGBIT(0, sizeof(ev_bits)), ev_bits) < 0) {
+/*            if (ioctl(fd, EVIOCGBIT(0, sizeof(ev_bits)), ev_bits) < 0) {
                 close(fd);
                 continue;
             }
-
+*/
             /* TODO: add ability to specify event masks. For now, just assume
              * that only EV_KEY and EV_REL event types are ever needed. */
-            if (!test_bit(EV_KEY, ev_bits) && !test_bit(EV_REL, ev_bits) && !test_bit(EV_ABS, ev_bits)) {
+
+/*            if (!test_bit(EV_KEY, ev_bits) && !test_bit(EV_REL, ev_bits)) {
                 close(fd);
                 continue;
             }
-
+*/
             ev_fds[ev_count].fd = fd;
             ev_fds[ev_count].events = POLLIN;
             ev_fdinfo[ev_count].cb = input_cb;
