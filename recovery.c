@@ -47,9 +47,6 @@
 
 struct selabel_handle *sehandle = NULL;
 
-#define ABS_MT_POSITION_X 0x35 /* Center X ellipse position */
-#define ABS_MT_POSITION_Y 0x36 /* Center Y ellipse position */
-
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
   { "update_package", required_argument, NULL, 'u' },
@@ -447,11 +444,10 @@ get_menu_selection(char** headers, char** items, int menu_only,
     int wrap_count = 0;
 
     while (chosen_item < 0 && chosen_item != GO_BACK) {
-	struct keyStruct *key;
-        key = ui_wait_key();
+        int key = ui_wait_key();
         int visible = ui_text_visible();
 
-        if (key->code == -1) {   // ui_wait_key() timed out
+        if (key == -1) {   // ui_wait_key() timed out
             if (ui_text_ever_visible()) {
                 continue;
             } else {
@@ -461,14 +457,7 @@ get_menu_selection(char** headers, char** items, int menu_only,
             }
         }
 
-
-//        int action = ui_handle_key(key, visible);
-        int action;
-	if(key->code == ABS_MT_POSITION_X)
-	    action = device_handle_mouse(key, visible);
-	else
-	    action = ui_handle_key(key->code, visible);
-
+        int action = ui_handle_key(key, visible);
 
         int old_selected = selected;
         selected = ui_get_selected_item();
