@@ -30,6 +30,7 @@
 
 #include "common.h"
 #include <cutils/android_reboot.h>
+#include <cutils/properties.h>
 #include "minui/minui.h"
 #include "recovery_ui.h"
 
@@ -53,6 +54,8 @@ static int gShowBackButton = 0;
 #define CHAR_HEIGHT BOARD_RECOVERY_CHAR_HEIGHT
 
 #define UI_WAIT_KEY_TIMEOUT_SEC    3600
+#define UI_KEY_REPEAT_INTERVAL 80
+#define UI_KEY_WAIT_REPEAT 400
 
 UIParameters ui_parameters = {
     6,       // indeterminate progress bar frames
@@ -70,6 +73,9 @@ static gr_surface gProgressBarFill;
 static gr_surface gBackground;
 static int ui_has_initialized = 0;
 static int ui_log_stdout = 1;
+
+static int boardEnableKeyRepeat = 0;
+static int boardRepeatableKeys[64], boardNumRepeatableKeys = 0;
 
 static const struct { gr_surface* surface; const char *name; } BITMAPS[] = {
     { &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
@@ -116,6 +122,7 @@ static int max_menu_rows;
 static pthread_mutex_t key_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t key_queue_cond = PTHREAD_COND_INITIALIZER;
 static int key_queue[256], key_queue_len = 0;
+static unsigned long key_last_repeat[KEY_MAX + 1], key_press_time[KEY_MAX + 1];
 static volatile char key_pressed[KEY_MAX + 1];
 
 static void update_screen_locked(void);
@@ -422,6 +429,10 @@ static int input_callback(int fd, short revents, void *data)
     if (ev.type != EV_KEY || ev.code > KEY_MAX)
         return 0;
 
+    if (ev.value == 2) {
+        boardEnableKeyRepeat = 0;
+    }
+
     pthread_mutex_lock(&key_queue_mutex);
     if (!fake_key) {
         // our "fake" keys only report a key-down event (no
@@ -432,6 +443,15 @@ static int input_callback(int fd, short revents, void *data)
     const int queue_max = sizeof(key_queue) / sizeof(key_queue[0]);
     if (ev.value > 0 && key_queue_len < queue_max) {
         key_queue[key_queue_len++] = ev.code;
+
+        if (boardEnableKeyRepeat) {
+            struct timeval now;
+            gettimeofday(&now, NULL);
+
+            key_press_time[ev.code] = (now.tv_sec * 1000) + (now.tv_usec / 1000);
+            key_last_repeat[ev.code] = 0;
+        }
+
         pthread_cond_signal(&key_queue_cond);
     }
     pthread_mutex_unlock(&key_queue_mutex);
@@ -529,6 +549,27 @@ void ui_init(void)
         }
     } else {
         gInstallationOverlay = NULL;
+    }
+
+    char enable_key_repeat[PROPERTY_VALUE_MAX];
+    property_get("ro.cwm.enable_key_repeat", enable_key_repeat, "");
+    if (!strcmp(enable_key_repeat, "true") || !strcmp(enable_key_repeat, "1")) {
+        boardEnableKeyRepeat = 1;
+
+        char key_list[PROPERTY_VALUE_MAX];
+        property_get("ro.cwm.repeatable_keys", key_list, "");
+        if (strlen(key_list) == 0) {
+            boardRepeatableKeys[boardNumRepeatableKeys++] = KEY_UP;
+            boardRepeatableKeys[boardNumRepeatableKeys++] = KEY_DOWN;
+            boardRepeatableKeys[boardNumRepeatableKeys++] = KEY_VOLUMEUP;
+            boardRepeatableKeys[boardNumRepeatableKeys++] = KEY_VOLUMEDOWN;
+        } else {
+            char *pch = strtok(key_list, ",");
+            while (pch != NULL) {
+                boardRepeatableKeys[boardNumRepeatableKeys++] = atoi(pch);
+                pch = strtok(NULL, ",");
+            }
+        }
     }
 
     pthread_t t;
@@ -818,6 +859,7 @@ static int usb_connected() {
 
 int ui_wait_key()
 {
+    if (boardEnableKeyRepeat) return ui_wait_key_with_repeat();
     pthread_mutex_lock(&key_queue_mutex);
 
     // Time out after UI_WAIT_KEY_TIMEOUT_SEC, unless a USB cable is
@@ -843,6 +885,101 @@ int ui_wait_key()
         memcpy(&key_queue[0], &key_queue[1], sizeof(int) * --key_queue_len);
     }
     pthread_mutex_unlock(&key_queue_mutex);
+    return key;
+}
+
+// util for ui_wait_key_with_repeat
+int key_can_repeat(int key)
+{
+    int k = 0;
+    for (;k < boardNumRepeatableKeys; ++k) {
+        if (boardRepeatableKeys[k] == key) {
+            break;
+        }
+    }
+    if (k < boardNumRepeatableKeys) return 1;
+    return 0;
+}
+
+int ui_wait_key_with_repeat()
+{
+    int key = -1;
+
+    // Loop to wait for more keys.
+    do {
+        struct timeval now;
+        struct timespec timeout;
+        gettimeofday(&now, NULL);
+        timeout.tv_sec = now.tv_sec;
+        timeout.tv_nsec = now.tv_usec * 1000;
+        timeout.tv_sec += UI_WAIT_KEY_TIMEOUT_SEC;
+
+        int rc = 0;
+        pthread_mutex_lock(&key_queue_mutex);
+        while (key_queue_len == 0 && rc != ETIMEDOUT) {
+            rc = pthread_cond_timedwait(&key_queue_cond, &key_queue_mutex,
+                                        &timeout);
+        }
+        pthread_mutex_unlock(&key_queue_mutex);
+        if (rc == ETIMEDOUT && !usb_connected()) {
+            return -1;
+        }
+
+        // Loop to wait wait for more keys, or repeated keys to be ready.
+        while (1) {
+            unsigned long now_msec;
+
+            gettimeofday(&now, NULL);
+            now_msec = (now.tv_sec * 1000) + (now.tv_usec / 1000);
+
+            pthread_mutex_lock(&key_queue_mutex);
+
+            // Replacement for the while conditional, so we don't have to lock the entire
+            // loop, because that prevents the input system from touching the variables while
+            // the loop is running which causes problems.
+            if (key_queue_len == 0) {
+                pthread_mutex_unlock(&key_queue_mutex);
+                break;
+            }
+
+            key = key_queue[0];
+            memcpy(&key_queue[0], &key_queue[1], sizeof(int) * --key_queue_len);
+
+            // sanity check the returned key.
+            if (key < 0) {
+                pthread_mutex_unlock(&key_queue_mutex);
+                return key;
+            }
+
+            // Check for already released keys and drop them if they've repeated.
+            if (!key_pressed[key] && key_last_repeat[key] > 0) {
+                pthread_mutex_unlock(&key_queue_mutex);
+                continue;
+            }
+
+            if (key_can_repeat(key)) {
+                // Re-add the key if a repeat is expected, since we just popped it. The
+                // if below will determine when the key is actually repeated (returned)
+                // in the mean time, the key will be passed through the queue over and
+                // over and re-evaluated each time.
+                if (key_pressed[key]) {
+                    key_queue[key_queue_len] = key;
+                    key_queue_len++;
+                }
+                if ((now_msec > key_press_time[key] + UI_KEY_WAIT_REPEAT && now_msec > key_last_repeat[key] + UI_KEY_REPEAT_INTERVAL) ||
+                        key_last_repeat[key] == 0) {
+                    key_last_repeat[key] = now_msec;
+                } else {
+                    // Not ready
+                    pthread_mutex_unlock(&key_queue_mutex);
+                    continue;
+                }
+            }
+            pthread_mutex_unlock(&key_queue_mutex);
+            return key;
+        }
+    } while (1);
+
     return key;
 }
 
