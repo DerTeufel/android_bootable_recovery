@@ -29,6 +29,9 @@ char* MENU_ITEMS[] = { "reboot system now",
                        "backup and restore",
                        "mounts and storage",
                        "advanced",
+		       "extras",
+		       "run openrecoveryscript",
+		       "power off",
                        NULL };
 
 void device_ui_init(UIParameters* ui_parameters) {
