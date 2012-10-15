@@ -85,7 +85,7 @@ int device_wipe_data();
 #define ITEM_ADVANCED        7
 #define ITEM_DEVIL	     8
 #define ITEM_FILEMANAGER     9
-
+#define ITEM_POWEROFF        10
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];

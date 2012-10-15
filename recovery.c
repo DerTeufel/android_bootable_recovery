@@ -747,6 +747,10 @@ prompt_and_wait() {
 	   case ITEM_FILEMANAGER:
                 install_zip(FILEMANAGER);
                 break;
+
+            case ITEM_POWEROFF:
+                poweroff = 1;
+                return;
         }
     }
 }
