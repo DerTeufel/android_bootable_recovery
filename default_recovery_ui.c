@@ -32,6 +32,7 @@ char* MENU_ITEMS[] = { "reboot system now",
                        "advanced",
 			"DEVIL",
 			"filemanager",
+                       "power off",
                        NULL };
 
 void device_ui_init(UIParameters* ui_parameters) {
