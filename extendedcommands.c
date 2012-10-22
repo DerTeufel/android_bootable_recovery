@@ -1263,8 +1263,6 @@ void show_advanced_menu()
                             "partition sdcard",
                             "partition external sdcard",
                             "partition internal sdcard",
-			    "Clear init.d directory",
-			    "Clear NSTools settings",
                             NULL
     };
 
@@ -1427,8 +1425,8 @@ void show_wifi_menu()
 								NULL
     };
 
-    static char* list[] = { "PM_FAST Mode - better WiFi signal",
-    						"PM_MAX Mode - better battery life",
+    static char* list[] = { "PM_FAST Mode - (Screen Off) better WiFi",
+    						"PM_MAX Mode - (Screen Off) better battery",
     						NULL
     };
 
