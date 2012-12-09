@@ -18,6 +18,9 @@ int device_toggle_display(volatile char* key_pressed, int key_code) {
 }
 
 int device_handle_key(int key_code, int visible) {
+#ifdef SK8S_DEBUG_UI
+    printf("handling a key! %i\n", key_code);
+#endif
     if (visible) {
         switch (key_code) {
             case KEY_CAPSLOCK:

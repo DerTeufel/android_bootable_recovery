@@ -575,7 +575,7 @@ static int flash_bml_partition(const MtdPartition* pSrcPart, const MtdPartition*
 
 #ifdef DUMMY_WRITING
 	close(pSrcWrite->fd);
-	pSrcWrite->fd = open("/sdcard/srcPartWriteDummy.bin", O_WRONLY|O_CREAT|O_TRUNC, 0666);
+	pSrcWrite->fd = open("/external_sd/srcPartWriteDummy.bin", O_WRONLY|O_CREAT|O_TRUNC, 0666);
 #endif
 
 	BmlOverMtdWriteContext* pResWrite = bml_over_mtd_write_partition(pReservoirPart);
@@ -588,7 +588,7 @@ static int flash_bml_partition(const MtdPartition* pSrcPart, const MtdPartition*
 	}
 #ifdef DUMMY_WRITING
 	close(pResWrite->fd);
-	pResWrite->fd = open("/sdcard/resPartWriteDummy.bin", O_WRONLY|O_CREAT|O_TRUNC, 0666);
+	pResWrite->fd = open("/external_sd/resPartWriteDummy.bin", O_WRONLY|O_CREAT|O_TRUNC, 0666);
 #endif
 
 	struct stat fileStat;

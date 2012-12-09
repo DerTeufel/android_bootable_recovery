@@ -39,8 +39,7 @@ static int GenerateTarget(FileContents* source_file,
                           const char* source_filename,
                           const char* target_filename,
                           const uint8_t target_sha1[SHA_DIGEST_SIZE],
-                          size_t target_size,
-                          const Value* bonus_data);
+                          size_t target_size);
 
 static int mtd_partitions_scanned = 0;
 
@@ -325,7 +324,7 @@ static int LoadPartitionContents(const char* filename, FileContents* file) {
 // Save the contents of the given FileContents object under the given
 // filename.  Return 0 on success.
 int SaveFileContents(const char* filename, const FileContents* file) {
-    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC);
     if (fd < 0) {
         printf("failed to open \"%s\" for write: %s\n",
                filename, strerror(errno));
@@ -618,8 +617,7 @@ int applypatch(const char* source_filename,
                size_t target_size,
                int num_patches,
                char** const patch_sha1_str,
-               Value** patch_data,
-               Value* bonus_data) {
+               Value** patch_data) {
     printf("\napplying patch to %s\n", source_filename);
 
     if (target_filename[0] == '-' &&
@@ -701,7 +699,7 @@ int applypatch(const char* source_filename,
     int result = GenerateTarget(&source_file, source_patch_value,
                                 &copy_file, copy_patch_value,
                                 source_filename, target_filename,
-                                target_sha1, target_size, bonus_data);
+                                target_sha1, target_size);
     free(source_file.data);
     free(copy_file.data);
 
@@ -715,8 +713,7 @@ static int GenerateTarget(FileContents* source_file,
                           const char* source_filename,
                           const char* target_filename,
                           const uint8_t target_sha1[SHA_DIGEST_SIZE],
-                          size_t target_size,
-                          const Value* bonus_data) {
+                          size_t target_size) {
     int retry = 1;
     SHA_CTX ctx;
     int output;
@@ -846,7 +843,7 @@ static int GenerateTarget(FileContents* source_file,
             strcpy(outname, target_filename);
             strcat(outname, ".patch");
 
-            output = open(outname, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+            output = open(outname, O_WRONLY | O_CREAT | O_TRUNC);
             if (output < 0) {
                 printf("failed to open output file %s: %s\n",
                        outname, strerror(errno));
@@ -870,7 +867,7 @@ static int GenerateTarget(FileContents* source_file,
         } else if (header_bytes_read >= 8 &&
                    memcmp(header, "IMGDIFF2", 8) == 0) {
             result = ApplyImagePatch(source_to_use->data, source_to_use->size,
-                                     patch, sink, token, &ctx, bonus_data);
+                                     patch, sink, token, &ctx);
         } else {
             printf("Unknown patch file format\n");
             return 1;

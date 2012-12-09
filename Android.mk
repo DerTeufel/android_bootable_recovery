@@ -18,8 +18,8 @@ LOCAL_SRC_FILES := \
     edifyscripting.c \
     setprop.c \
     default_recovery_ui.c \
-    adb_install.c \
-    verifier.c
+    verifier.c \
+    kyle.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)
 LOCAL_SRC_FILES += $(ADDITIONAL_RECOVERY_FILES)
@@ -28,20 +28,52 @@ LOCAL_MODULE := recovery
 
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 
-ifdef I_AM_KOUSH
-RECOVERY_NAME := ClockworkMod Recovery
-LOCAL_CFLAGS += -DI_AM_KOUSH
+SK8S_TOUCH_RECOVERY := true
+ifdef SK8S_TOUCH_RECOVERY
+RECOVERY_NAME := Sk8s CWMRTouch
+LOCAL_CFLAGS += -DSK8S_TOUCH_RECOVERY
 else
-ifndef RECOVERY_NAME
-RECOVERY_NAME := CWM-based Recovery
-endif
+RECOVERY_NAME := CWMR Touch
 endif
 
-RECOVERY_VERSION := $(RECOVERY_NAME) v6.0.2.1
+CWM_BASE_VERSION := 6.0.1.9
+ifdef SK8S_TOUCH_RECOVERY
+SK8S_BUILD := 14.3.2
+LOCAL_CFLAGS += -DSK8S_BUILD="$(SK8S_BUILD)"
+RECOVERY_VERSION := $(RECOVERY_NAME) $(CWM_BASE_VERSION) $(SK8S_BUILD)
+LOCAL_CFLAGS += -DCWM_BASE_VERSION="$(CWM_BASE_VERSION)"
+#compile date:
+#LOCAL_CFLAGS += -DBUILD_DATE="\"`date`\""
+else
+RECOVERY_VERSION := $(RECOVERY_NAME) $(CWM_BASE_VERSION)
+endif
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 RECOVERY_API_VERSION := 2
 LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
+
+#Samsung Galaxy S2 LTE Skyrocket
+ifeq ($(TARGET_PRODUCT), cm_skyrocket)
+TARGET_DEVICE := i727
+LOCAL_CFLAGS += -DTARGET_DEVICE_I727
+
+#Samsung Galaxy S2 T-Mobile
+else ifeq ($(TARGET_PRODUCT), cm_hercules)
+TARGET_DEVICE := t989
+LOCAL_CFLAGS += -DTARGET_DEVICE_T989
+
+# LG Optimus G
+else ifeq ($(TARGET_PRODUCT), cm_optimusgatt)
+TARGET_DEVICE := E970
+BOARD_USE_CUSTOM_RECOVERY_FONT := \"roboto_15x24.h\"
+LOCAL_CFLAGS += -DTARGET_DEVICE_E970
+
+#Undefined Device
+else
+TARGET_DEVICE := $(TARGET_PRODUCT)
+endif
+
+LOCAL_CFLAGS += -DTARGET_DEVICE="$(TARGET_DEVICE)"
 
 ifdef BOARD_TOUCH_RECOVERY
 ifeq ($(BOARD_USE_CUSTOM_RECOVERY_FONT),)
@@ -58,7 +90,7 @@ BOARD_RECOVERY_CHAR_HEIGHT := $(shell echo $(BOARD_USE_CUSTOM_RECOVERY_FONT) | c
 
 LOCAL_CFLAGS += -DBOARD_RECOVERY_CHAR_WIDTH=$(BOARD_RECOVERY_CHAR_WIDTH) -DBOARD_RECOVERY_CHAR_HEIGHT=$(BOARD_RECOVERY_CHAR_HEIGHT)
 
-BOARD_RECOVERY_DEFINES := BOARD_HAS_NO_SELECT_BUTTON BOARD_UMS_LUNFILE BOARD_RECOVERY_ALWAYS_WIPES BOARD_RECOVERY_HANDLES_MOUNT BOARD_TOUCH_RECOVERY RECOVERY_EXTEND_NANDROID_MENU
+BOARD_RECOVERY_DEFINES := BOARD_HAS_NO_SELECT_BUTTON BOARD_UMS_LUNFILE BOARD_RECOVERY_ALWAYS_WIPES BOARD_RECOVERY_HANDLES_MOUNT BOARD_TOUCH_RECOVERY RECOVERY_EXTEND_NANDROID_MENU SK8S_DEBUG_UI RECOVERY_DATAMEDIA_AND_SDCARD TARGET_DEVICE_E970 TAP_TO_SELECT
 
 $(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
   $(if $($(board_define)), \
@@ -70,7 +102,7 @@ LOCAL_STATIC_LIBRARIES :=
 
 LOCAL_CFLAGS += -DUSE_EXT4
 LOCAL_C_INCLUDES += system/extras/ext4_utils
-LOCAL_STATIC_LIBRARIES += libext4_utils_static libz libsparse_static
+LOCAL_STATIC_LIBRARIES += libext4_utils libz
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses
@@ -85,10 +117,10 @@ else
   LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_KEYMAPPING)
 endif
 
-LOCAL_STATIC_LIBRARIES += libext4_utils_static libz libsparse_static
+LOCAL_STATIC_LIBRARIES += libext4_utils libz
 LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
 
-LOCAL_STATIC_LIBRARIES += libminizip libminadbd libedify libbusybox libmkyaffs2image libunyaffs liberase_image libdump_image libflash_image
+LOCAL_STATIC_LIBRARIES += libminizip libedify libbusybox libmkyaffs2image libunyaffs liberase_image libdump_image libflash_image
 
 LOCAL_STATIC_LIBRARIES += libdedupe libcrypto_static libcrecovery libflashutils libmtdutils libmmcutils libbmlutils
 
@@ -146,6 +178,62 @@ LOCAL_SRC_FILES := killrecovery.sh
 include $(BUILD_PREBUILT)
 
 include $(CLEAR_VARS)
+LOCAL_MODULE := backup-efs.sh
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := backup-efs.sh
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := restore-efs.sh
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := restore-efs.sh
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := create_update_zip.sh
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := create_update_zip.sh
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := ors-mount.sh
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := ors-mount.sh
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := change_ba.sh
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := change_ba.sh
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := kernel-backup.sh
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := kernel-backup.sh
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := kernel-restore.sh
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := kernel-restore.sh
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := verifier_test.c verifier.c
 
@@ -166,7 +254,6 @@ include $(commands_recovery_local_path)/libcrecovery/Android.mk
 include $(commands_recovery_local_path)/minui/Android.mk
 include $(commands_recovery_local_path)/minelf/Android.mk
 include $(commands_recovery_local_path)/minzip/Android.mk
-include $(commands_recovery_local_path)/minadbd/Android.mk
 include $(commands_recovery_local_path)/mtdutils/Android.mk
 include $(commands_recovery_local_path)/mmcutils/Android.mk
 include $(commands_recovery_local_path)/tools/Android.mk

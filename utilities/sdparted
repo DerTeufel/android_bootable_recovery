@@ -546,7 +546,7 @@ TTISMSDOS=
 
 SDSIZE=
 SDSIZEMB=
-SDINFO=$(cat /etc/fstab | grep /sdcard | awk '{print $1}')
+SDINFO=$(cat /etc/fstab | grep /external_sd | awk '{print $1}')
 if [ -L "$SDINFO" ]
 then
 	SDPATH=$(ls -l $SDINFO | awk '{print $11}')

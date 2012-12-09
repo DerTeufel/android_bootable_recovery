@@ -132,7 +132,7 @@ typedef struct {
 
     const char* fs_options2;
 
-    const char* lun;          // (/sdcard, /emmc, /external_sd only) LUN file to
+    const char* lun;          // (/emmc, /sdcard, /external_sd only) LUN file to
                               // use when mounting via USB mass storage
 } Volume;
 

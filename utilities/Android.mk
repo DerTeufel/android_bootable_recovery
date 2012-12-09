@@ -49,3 +49,11 @@ LOCAL_CFLAGS := -Dmain=minizip_main -D__ANDROID__ -DIOAPI_NO_64
 LOCAL_C_INCLUDES := external/zlib
 LOCAL_SRC_FILES := ../../../external/zlib/contrib/minizip/minizip.c ../../../external/zlib/contrib/minizip/zip.c ../../../external/zlib/contrib/minizip/ioapi.c
 include $(BUILD_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := zip
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
+LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_SRC_FILES := $(LOCAL_MODULE)
+include $(BUILD_PREBUILT)

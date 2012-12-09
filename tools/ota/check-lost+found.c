@@ -44,7 +44,7 @@ static const char *kPartitions[] = { "/system", "/data", "/cache", NULL };
  * 2. Write a log entry with the number of files in lost+found directories.
  */
 
-int main(int argc __attribute__((unused)), char **argv __attribute__((unused))) {
+int main(int argc, char **argv) {
     mkdir(kOutputDir, 0755);
     chown(kOutputDir, AID_SYSTEM, AID_SYSTEM);
     FILE *out = fopen(kOutputFile, "a");

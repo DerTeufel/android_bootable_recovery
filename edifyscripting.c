@@ -153,10 +153,20 @@ Value* FormatFn(const char* name, State* state, int argc, Expr* argv[]) {
             free(path);
             return StringValue(strdup(""));
         }
-        if (0 != format_volume("/sdcard/.android_secure")) {
-            free(path);
-            return StringValue(strdup(""));
-        }
+    	ensure_path_mounted("/sdcard");
+    	ensure_path_mounted("/external_sd");
+	if( access( "/sdcard/clockworkmod/.is_as_external", F_OK ) != -1) {
+	    if (0 != format_volume("/external_sd/.android_secure")) {
+	        free(path);
+	        return StringValue(strdup(""));
+            }
+	}
+	else {
+            if (0 != format_volume("/sdcard/.android_secure")) {
+                free(path);
+                return StringValue(strdup(""));
+            }
+	}
     }
 
 done:
@@ -320,31 +330,31 @@ int run_and_remove_extendedcommand()
     int i = 0;
     for (i = 20; i > 0; i--) {
         ui_print("Waiting for SD Card to mount (%ds)\n", i);
-        if (ensure_path_mounted("/sdcard") == 0) {
+        if (ensure_path_mounted("/external_sd") == 0) {
             ui_print("SD Card mounted...\n");
             break;
         }
         sleep(1);
     }
-    remove("/sdcard/clockworkmod/.recoverycheckpoint");
+    remove("/external_sd/clockworkmod/.recoverycheckpoint");
     if (i == 0) {
         ui_print("Timed out waiting for SD card... continuing anyways.");
     }
 
     ui_print("Verifying SD Card marker...\n");
     struct stat st;
-    if (stat("/sdcard/clockworkmod/.salted_hash", &st) != 0) {
+    if (stat("/external_sd/clockworkmod/.salted_hash", &st) != 0) {
         ui_print("SD Card marker not found...\n");
-        if (volume_for_path("/emmc") != NULL) {
+        if (volume_for_path("/sdcard") != NULL) {
             ui_print("Checking Internal SD Card marker...\n");
-            ensure_path_unmounted("/sdcard");
-            if (ensure_path_mounted_at_mount_point("/emmc", "/sdcard") != 0) {
+            ensure_path_unmounted("/external_sd");
+            if (ensure_path_mounted_at_mount_point("/sdcard", "/external_sd") != 0) {
                 ui_print("Internal SD Card marker not found... continuing anyways.\n");
                 // unmount everything, and remount as normal
-                ensure_path_unmounted("/emmc");
                 ensure_path_unmounted("/sdcard");
+                ensure_path_unmounted("/external_sd");
 
-                ensure_path_mounted("/sdcard");
+                ensure_path_mounted("/external_sd");
             }
         }
     }

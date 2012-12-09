@@ -99,7 +99,7 @@ scan_mounted_volumes()
      *     /sys /sys sysfs rw 0 0
      *     /dev/block/mtdblock4 /system yaffs2 rw,nodev,noatime,nodiratime 0 0
      *     /dev/block/mtdblock5 /data yaffs2 rw,nodev,noatime,nodiratime 0 0
-     *     /dev/block/mmcblk0p1 /sdcard vfat rw,sync,dirsync,fmask=0000,dmask=0000,codepage=cp437,iocharset=iso8859-1,utf8 0 0
+     *     /dev/block/mmcblk0p1 /external_sd vfat rw,sync,dirsync,fmask=0000,dmask=0000,codepage=cp437,iocharset=iso8859-1,utf8 0 0
      *
      * The zeroes at the end are dummy placeholder fields to make the
      * output match Linux's /etc/mtab, but don't represent anything here.
