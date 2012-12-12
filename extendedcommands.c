@@ -1367,6 +1367,30 @@ void show_advanced_menu()
     }
 }
 
+
+void show_dualboot_menu() {
+    static char* headers[] = {  "Dualboot System Mount Menu",
+                                "",
+                                NULL
+    };
+
+    char* list[] = { "enable mounting of primary system",
+        "enable mounting of secondary system",
+        NULL
+    };
+
+    int chosen_item = get_menu_selection(headers, list, 0, 0);
+    switch (chosen_item) {
+        case 0:
+		__system("cp /etc/primary.fstab /etc/fstab");
+                break;
+        case 1:
+		__system("cp /etc/secondary.fstab /etc/fstab");
+                break;
+    }
+}
+
+
 /* Devil menu */
 
 

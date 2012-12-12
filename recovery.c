@@ -702,8 +702,20 @@ prompt_and_wait() {
         int status;
         switch (chosen_item) {
             case ITEM_REBOOT:
+		ensure_path_mounted("/data");
+                __system("echo primary > /data/dualboot/rom");
                 poweroff=0;
                 return;
+
+            case ITEM_REBOOT_SECONDARY:
+		ensure_path_mounted("/data");
+                __system("echo secondary > /data/dualboot/rom");
+                poweroff=0;
+                return;
+
+            case ITEM_DUALBOOT_MENU:
+                show_dualboot_menu();
+                break;
 
             case ITEM_WIPE_DATA:
                 wipe_data(ui_text_visible());
