@@ -1387,16 +1387,28 @@ void show_dualboot_menu() {
 
     char* list[] = { "enable mounting of primary system",
         "enable mounting of secondary system",
+        "keep current system mounted after reboot recovery",
         NULL
     };
 
     int chosen_item = get_menu_selection(headers, list, 0, 0);
     switch (chosen_item) {
         case 0:
+		ensure_path_mounted("/cache");
+		__system("mkdir -p /cache/dualboot");
 		__system("cp /etc/primary.fstab /etc/fstab");
+		__system("echo primary > /cache/dualboot/unsecure");
                 break;
         case 1:
+		ensure_path_mounted("/cache");
+		__system("mkdir -p /cache/dualboot");
 		__system("cp /etc/secondary.fstab /etc/fstab");
+		__system("echo secondary > /cache/dualboot/unsecure");
+                break;
+        case 2:
+		ensure_path_mounted("/cache");
+		__system("mkdir -p /cache/dualboot");
+		__system("touch /cache/dualboot/unsecure_recovery");
                 break;
     }
 }
