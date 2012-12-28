@@ -24,7 +24,7 @@ char* MENU_HEADERS[] = { NULL };
 
 char* MENU_ITEMS[] = { "reboot primary system now",
 		       "reboot secondary system now",
-                       "mount primary/secondary /system",
+                       "dual boot menu",
                        "install zip from sdcard",
                        "install zip from sideload",
                        "wipe data/factory reset",
