@@ -1,18 +1,6 @@
-/*
- * Copyright (C) 2008 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright ClockworkMod, LLC. Reference and porting purposes only. Usage of the extendedcommand API
+// is restricted to those granted explicit permission, or by use of the ROM Manager Recovery API.
+// https://github.com/koush/TestRomManager
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -319,31 +307,30 @@ int run_and_remove_extendedcommand()
     remove(EXTENDEDCOMMAND_SCRIPT);
     int i = 0;
     for (i = 20; i > 0; i--) {
-        ui_print("Waiting for SD Card to mount (%ds)\n", i);
+        ui_print("Waiting for SD-Card to mount (%ds)\n", i);
         if (ensure_path_mounted("/sdcard") == 0) {
-            ui_print("SD Card mounted...\n");
+            ui_print("SD-Card mounted...\n");
             break;
         }
         sleep(1);
     }
     remove("/sdcard/clockworkmod/.recoverycheckpoint");
     if (i == 0) {
-        ui_print("Timed out waiting for SD card... continuing anyways.");
+        ui_print("Timed Out waiting for SD-Card... Continuing anyways.");
     }
 
-    ui_print("Verifying SD Card marker...\n");
+    ui_print("Verifying SD-Card marker...\n");
     struct stat st;
     if (stat("/sdcard/clockworkmod/.salted_hash", &st) != 0) {
-        ui_print("SD Card marker not found...\n");
+        ui_print("SD-Card marker not found...\n");
         if (volume_for_path("/emmc") != NULL) {
-            ui_print("Checking Internal SD Card marker...\n");
+            ui_print("Checking internal SD-Card marker...\n");
             ensure_path_unmounted("/sdcard");
             if (ensure_path_mounted_at_mount_point("/emmc", "/sdcard") != 0) {
-                ui_print("Internal SD Card marker not found... continuing anyways.\n");
+                ui_print("Internal SD-Card marker not found... Continuing anyways.\n");
                 // unmount everything, and remount as normal
                 ensure_path_unmounted("/emmc");
                 ensure_path_unmounted("/sdcard");
-
                 ensure_path_mounted("/sdcard");
             }
         }

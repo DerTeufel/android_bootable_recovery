@@ -35,7 +35,7 @@ int get_bootloader_message(struct bootloader_message *out) {
     if(v)
     {
         if (strcmp(v->fs_type, "mtd") == 0) {
-                return get_bootloader_message_mtd(out, v);
+               return get_bootloader_message_mtd(out, v);
         } else if (strcmp(v->fs_type, "emmc") == 0) {
                 return get_bootloader_message_block(out, v);
         }

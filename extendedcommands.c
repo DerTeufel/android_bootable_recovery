@@ -637,9 +637,11 @@ int format_device(const char *device, const char *path, const char *fs_type) {
         LOGE("unknown volume \"%s\"\n", path);
         return -1;
     }
+
     if (is_data_media_volume_path(path)) {
         return format_unknown_device(NULL, path, NULL);
     }
+
     if (strstr(path, "/data") == path && is_data_media()) {
         return format_unknown_device(NULL, path, NULL);
     }
@@ -1283,6 +1285,14 @@ int can_partition(const char* volume) {
     }
 
     return 1;
+}
+
+int vibration_enabled = 1;
+
+void toggle_vibration()
+{
+    vibration_enabled = !vibration_enabled;
+    ui_print("Vibrate on touch: %s\n", vibration_enabled ? "Enabled" : "Disabled");
 }
 
 void show_advanced_menu()
