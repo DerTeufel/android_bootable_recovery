@@ -22,13 +22,14 @@
 
 char* MENU_HEADERS[] = { NULL };
 
-char* MENU_ITEMS[] = { "Install Flashable Zip",
-                       "Nandroid Backup & Restore",
-                       "Wipe Cache & Dalvik Cache",
-                       "Wipe Data/Factory Reset",
-		       "Mounts & Storage",
-                       "Advanced Options",
-                       "Reboot System Now",
+char* MENU_ITEMS[] = { "reboot system now",
+                       "install zip from sdcard",
+                       "wipe data/factory reset",
+                       "wipe cache partition",
+                       "backup and restore",
+                       "mounts and storage",
+                       "advanced",
+                       "power off",
                        NULL };
 
 void device_ui_init(UIParameters* ui_parameters) {
