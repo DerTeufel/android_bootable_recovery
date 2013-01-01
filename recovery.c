@@ -1,4 +1,4 @@
-/*
+/*k
  * Copyright (C) 2007 The Android Open Source Project
  * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
  *
@@ -226,7 +226,9 @@ get_args(int *argc, char ***argv) {
         strlcat(boot.recovery, (*argv)[i], sizeof(boot.recovery));
         strlcat(boot.recovery, "\n", sizeof(boot.recovery));
     }
-    set_bootloader_message(&boot);
+    if (device_flash_type() == MTD) {
+        set_bootloader_message(&boot);
+    }
 }
 
 void
@@ -288,10 +290,12 @@ finish_recovery(const char *send_intent) {
     copy_log_file(LAST_LOG_FILE, false);
     chmod(LAST_LOG_FILE, 0640);
 
-    // Reset to normal system boot so recovery won't cycle indefinitely.
-    struct bootloader_message boot;
-    memset(&boot, 0, sizeof(boot));
-    set_bootloader_message(&boot);
+    if (device_flash_type() == MTD) {
+        // Reset to mormal system boot so recovery won't cycle indefinitely.
+        struct bootloader_message boot;
+        memset(&boot, 0, sizeof(boot));
+        set_bootloader_message(&boot);
+    }
 
     // Remove the command file, so recovery won't repeat indefinitely.
     if (ensure_path_mounted(COMMAND_FILE) != 0 ||
@@ -433,10 +437,11 @@ prepend_title(char** headers) {
 int
 get_menu_selection(char** headers, char** items, int menu_only,
                    int initial_selection) {
+    //printf("getting a menu selection\n");
     // throw away keys pressed previously, so user doesn't
     // accidentally trigger menu items.
     ui_clear_key_queue();
-    
+
     int item_count = ui_start_menu(headers, items, initial_selection);
     int selected = initial_selection;
     int chosen_item = -1;
@@ -447,6 +452,7 @@ get_menu_selection(char** headers, char** items, int menu_only,
     int wrap_count = 0;
 
     while (chosen_item < 0 && chosen_item != GO_BACK) {
+        usleep(25000);
         int key = ui_wait_key();
         int visible = ui_text_visible();
 
@@ -644,32 +650,21 @@ wipe_data(int confirm) {
         }
 
         char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " Yes -- delete all user data",   // [7]
-                          " No",
-                          " No",
-                          " No",
-                          NULL };
+			  " Yes - Delete all user data", NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
+        if (chosen_item != 1) {
             return;
         }
     }
 
-    ui_print("\n-- Wiping data...\n");
+    ui_print("\n-- Wiping /data...\n");
     device_wipe_data();
     erase_volume("/data");
     erase_volume("/cache");
     if (has_datadata()) {
         erase_volume("/datadata");
     }
-    erase_volume("/sd-ext");
     erase_volume("/sdcard/.android_secure");
     ui_print("Data wipe complete.\n");
 }
@@ -682,12 +677,12 @@ prompt_and_wait() {
 
     for (;;) {
         finish_recovery(NULL);
-        ui_reset_progress();
-        
+        ui_reset_progress();     
         ui_root_menu = 1;
         // ui_menu_level is a legacy variable that i am keeping around to prevent build breakage.
         ui_menu_level = 0;
         // allow_display_toggle = 1;
+
         int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
         ui_menu_level = 1;
         ui_root_menu = 0;
@@ -813,7 +808,7 @@ main(int argc, char **argv) {
 
     device_ui_init(&ui_parameters);
     ui_init();
-    ui_print(EXPAND(RECOVERY_VERSION)"\n");
+    //ui_print(EXPAND(RECOVERY_VERSION)"\n");
     load_volume_table();
     process_volumes();
     LOGI("Processing arguments.\n");
