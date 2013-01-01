@@ -75,14 +75,15 @@ int device_wipe_data();
 #define ITEM_REBOOT          0
 #define ITEM_APPLY_EXT       1
 #define ITEM_APPLY_SDCARD    1  // historical synonym for ITEM_APPLY_EXT
-#define ITEM_WIPE_DATA       2
-#define ITEM_WIPE_CACHE      3
+#define ITEM_APPLY_SIDELOAD  2
+#define ITEM_WIPE_DATA       3
+#define ITEM_WIPE_CACHE      4
 // unused in cwr
 #define ITEM_APPLY_CACHE     4
-#define ITEM_NANDROID        4
-#define ITEM_PARTITION       5
-#define ITEM_ADVANCED        6
-#define ITEM_POWEROFF        7
+#define ITEM_NANDROID        5
+#define ITEM_PARTITION       6
+#define ITEM_ADVANCED        7
+#define ITEM_POWEROFF        8
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];
@@ -91,7 +92,7 @@ extern char* MENU_HEADERS[];
 extern char* MENU_ITEMS[];
 
 // Loosely track the depth of the current menu
-int ui_menu_level;
+extern int ui_root_menu;
 
 int
 get_menu_selection(char** headers, char** items, int menu_only, int initial_selection);
@@ -101,5 +102,7 @@ set_sdcard_update_bootloader_message();
 
 // Vibration toggle
 extern int vibration_enabled;
+
+extern int ui_handle_key(int key, int visible);
 
 #endif

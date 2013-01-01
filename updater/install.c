@@ -33,13 +33,10 @@
 #include "edify/expr.h"
 #include "mincrypt/sha.h"
 #include "minzip/DirUtil.h"
-#include "minelf/Retouch.h"
 #include "mounts.h"
 #include "mtdutils/mtdutils.h"
 #include "updater.h"
 #include "applypatch/applypatch.h"
-
-#include "flashutils/flashutils.h"
 
 #ifdef USE_EXT4
 #include "make_ext4fs.h"
@@ -81,7 +78,23 @@ Value* MountFn(const char* name, State* state, int argc, Expr* argv[]) {
         goto done;
     }
 
+#ifdef HAVE_SELINUX
+    char *secontext = NULL;
+
+    if (sehandle) {
+        selabel_lookup(sehandle, &secontext, mount_point, 0755);
+        setfscreatecon(secontext);
+    }
+#endif
+
     mkdir(mount_point, 0755);
+
+#ifdef HAVE_SELINUX
+    if (secontext) {
+        freecon(secontext);
+        setfscreatecon(NULL);
+    }
+#endif
 
     if (strcmp(partition_type, "MTD") == 0) {
         mtd_scan_partitions();
@@ -179,23 +192,25 @@ done:
 }
 
 
-// format(fs_type, partition_type, location, fs_size)
+// format(fs_type, partition_type, location, fs_size, mount_point)
 //
-//    fs_type="yaffs2" partition_type="MTD"     location=partition fs_size=<bytes>
-//    fs_type="ext4"   partition_type="EMMC"    location=device    fs_size=<bytes>
+//    fs_type="yaffs2" partition_type="MTD"     location=partition fs_size=<bytes> mount_point=<location>
+//    fs_type="ext4"   partition_type="EMMC"    location=device    fs_size=<bytes> mount_point=<location>
 //    if fs_size == 0, then make_ext4fs uses the entire partition.
 //    if fs_size > 0, that is the size to use
 //    if fs_size < 0, then reserve that many bytes at the end of the partition
 Value* FormatFn(const char* name, State* state, int argc, Expr* argv[]) {
     char* result = NULL;
-    if (argc != 4) {
-        return ErrorAbort(state, "%s() expects 4 args, got %d", name, argc);
+    if (argc != 5) {
+        return ErrorAbort(state, "%s() expects 5 args, got %d", name, argc);
     }
     char* fs_type;
     char* partition_type;
     char* location;
     char* fs_size;
-    if (ReadArgs(state, argv, 4, &fs_type, &partition_type, &location, &fs_size) < 0) {
+    char* mount_point;
+
+    if (ReadArgs(state, argv, 5, &fs_type, &partition_type, &location, &fs_size, &mount_point) < 0) {
         return NULL;
     }
 
@@ -210,6 +225,11 @@ Value* FormatFn(const char* name, State* state, int argc, Expr* argv[]) {
     }
     if (strlen(location) == 0) {
         ErrorAbort(state, "location argument to %s() can't be empty", name);
+        goto done;
+    }
+
+    if (strlen(mount_point) == 0) {
+        ErrorAbort(state, "mount_point argument to %s() can't be empty", name);
         goto done;
     }
 
@@ -242,7 +262,7 @@ Value* FormatFn(const char* name, State* state, int argc, Expr* argv[]) {
         result = location;
 #ifdef USE_EXT4
     } else if (strcmp(fs_type, "ext4") == 0) {
-        int status = make_ext4fs(location, atoll(fs_size));
+        int status = make_ext4fs(location, atoll(fs_size), mount_point, sehandle);
         if (status != 0) {
             fprintf(stderr, "%s: make_ext4fs failed (%d) on %s",
                     name, status, location);
@@ -251,24 +271,6 @@ Value* FormatFn(const char* name, State* state, int argc, Expr* argv[]) {
         }
         result = location;
 #endif
-    } else if (strcmp(fs_type, "ext2") == 0) {
-        int status = format_ext2_device(location);
-        if (status != 0) {
-            fprintf(stderr, "%s: format_ext2_device failed (%d) on %s",
-                    name, status, location);
-            result = strdup("");
-            goto done;
-        }
-        result = location;
-    } else if (strcmp(fs_type, "ext3") == 0) {
-        int status = format_ext3_device(location);
-        if (status != 0) {
-            fprintf(stderr, "%s: format_ext3_device failed (%d) on %s",
-                    name, status, location);
-            result = strdup("");
-            goto done;
-        }
-        result = location;
     } else {
         fprintf(stderr, "%s: unsupported fs_type \"%s\" partition_type \"%s\"",
                 name, fs_type, partition_type);
@@ -367,7 +369,7 @@ Value* PackageExtractDirFn(const char* name, State* state,
 
     bool success = mzExtractRecursive(za, zip_path, dest_path,
                                       MZ_EXTRACT_FILES_ONLY, &timestamp,
-                                      NULL, NULL);
+                                      NULL, NULL, sehandle);
     free(zip_path);
     free(dest_path);
     return StringValue(strdup(success ? "t" : ""));
@@ -454,119 +456,26 @@ Value* PackageExtractFileFn(const char* name, State* state,
     }
 }
 
-
-// retouch_binaries(lib1, lib2, ...)
-Value* RetouchBinariesFn(const char* name, State* state,
-                         int argc, Expr* argv[]) {
-    UpdaterInfo* ui = (UpdaterInfo*)(state->cookie);
-
-    char **retouch_entries  = ReadVarArgs(state, argc, argv);
-    if (retouch_entries == NULL) {
-        return StringValue(strdup("t"));
-    }
-
-    // some randomness from the clock
-    int32_t override_base;
-    bool override_set = false;
-    int32_t random_base = time(NULL) % 1024;
-    // some more randomness from /dev/random
-    FILE *f_random = fopen("/dev/random", "rb");
-    uint16_t random_bits = 0;
-    if (f_random != NULL) {
-        fread(&random_bits, 2, 1, f_random);
-        random_bits = random_bits % 1024;
-        fclose(f_random);
-    }
-    random_base = (random_base + random_bits) % 1024;
-
-    // make sure we never randomize to zero; this let's us look at a file
-    // and know for sure whether it has been processed; important in the
-    // crash recovery process
-    if (random_base == 0) random_base = 1;
-    // make sure our randomization is page-aligned
-    random_base *= -0x1000;
-    override_base = random_base;
-
-    int i = 0;
-    bool success = true;
-    while (i < (argc - 1)) {
-        success = success && retouch_one_library(retouch_entries[i],
-                                                 retouch_entries[i+1],
-                                                 random_base,
-                                                 override_set ?
-                                                   NULL :
-                                                   &override_base);
-        if (!success)
-            ErrorAbort(state, "Failed to retouch '%s'.", retouch_entries[i]);
-
-        free(retouch_entries[i]);
-        free(retouch_entries[i+1]);
-        i += 2;
-
-        if (success && override_base != 0) {
-            random_base = override_base;
-            override_set = true;
+// Create all parent directories of name, if necessary.
+static int make_parents(char* name) {
+    char* p;
+    for (p = name + (strlen(name)-1); p > name; --p) {
+        if (*p != '/') continue;
+        *p = '\0';
+        if (make_parents(name) < 0) return -1;
+        int result = mkdir(name, 0700);
+        if (result == 0) fprintf(stderr, "symlink(): created [%s]\n", name);
+        *p = '/';
+        if (result == 0 || errno == EEXIST) {
+            // successfully created or already existed; we're done
+            return 0;
+        } else {
+            fprintf(stderr, "failed to mkdir %s: %s\n", name, strerror(errno));
+            return -1;
         }
     }
-    if (i < argc) {
-        free(retouch_entries[i]);
-        success = false;
-    }
-    free(retouch_entries);
-
-    if (!success) {
-      Value* v = malloc(sizeof(Value));
-      v->type = VAL_STRING;
-      v->data = NULL;
-      v->size = -1;
-      return v;
-    }
-    return StringValue(strdup("t"));
+    return 0;
 }
-
-
-// undo_retouch_binaries(lib1, lib2, ...)
-Value* UndoRetouchBinariesFn(const char* name, State* state,
-                             int argc, Expr* argv[]) {
-    UpdaterInfo* ui = (UpdaterInfo*)(state->cookie);
-
-    char **retouch_entries  = ReadVarArgs(state, argc, argv);
-    if (retouch_entries == NULL) {
-        return StringValue(strdup("t"));
-    }
-
-    int i = 0;
-    bool success = true;
-    int32_t override_base;
-    while (i < (argc-1)) {
-        success = success && retouch_one_library(retouch_entries[i],
-                                                 retouch_entries[i+1],
-                                                 0 /* undo => offset==0 */,
-                                                 NULL);
-        if (!success)
-            ErrorAbort(state, "Failed to unretouch '%s'.",
-                       retouch_entries[i]);
-
-        free(retouch_entries[i]);
-        free(retouch_entries[i+1]);
-        i += 2;
-    }
-    if (i < argc) {
-        free(retouch_entries[i]);
-        success = false;
-    }
-    free(retouch_entries);
-
-    if (!success) {
-      Value* v = malloc(sizeof(Value));
-      v->type = VAL_STRING;
-      v->data = NULL;
-      v->size = -1;
-      return v;
-    }
-    return StringValue(strdup("t"));
-}
-
 
 // symlink target src1 src2 ...
 //    unlinks any previously existing src1, src2, etc before creating symlinks.
@@ -584,21 +493,32 @@ Value* SymlinkFn(const char* name, State* state, int argc, Expr* argv[]) {
         return NULL;
     }
 
+    int bad = 0;
     int i;
     for (i = 0; i < argc-1; ++i) {
         if (unlink(srcs[i]) < 0) {
             if (errno != ENOENT) {
                 fprintf(stderr, "%s: failed to remove %s: %s\n",
                         name, srcs[i], strerror(errno));
+                ++bad;
             }
+        }
+        if (make_parents(srcs[i])) {
+            fprintf(stderr, "%s: failed to symlink %s to %s: making parents failed\n",
+                    name, srcs[i], target);
+            ++bad;
         }
         if (symlink(target, srcs[i]) < 0) {
             fprintf(stderr, "%s: failed to symlink %s to %s: %s\n",
                     name, srcs[i], target, strerror(errno));
+            ++bad;
         }
         free(srcs[i]);
     }
     free(srcs);
+    if (bad) {
+        return ErrorAbort(state, "%s: some symlinks failed", name);
+    }
     return StringValue(strdup(""));
 }
 
@@ -609,7 +529,8 @@ Value* SetPermFn(const char* name, State* state, int argc, Expr* argv[]) {
 
     int min_args = 4 + (recursive ? 1 : 0);
     if (argc < min_args) {
-        return ErrorAbort(state, "%s() expects %d+ args, got %d", name, argc);
+        return ErrorAbort(state, "%s() expects %d+ args, got %d",
+                          name, min_args, argc);
     }
 
     char** args = ReadVarArgs(state, argc, argv);
@@ -617,6 +538,7 @@ Value* SetPermFn(const char* name, State* state, int argc, Expr* argv[]) {
 
     char* end;
     int i;
+    int bad = 0;
 
     int uid = strtoul(args[0], &end, 0);
     if (*end != '\0' || args[0][0] == 0) {
@@ -658,10 +580,12 @@ Value* SetPermFn(const char* name, State* state, int argc, Expr* argv[]) {
             if (chown(args[i], uid, gid) < 0) {
                 fprintf(stderr, "%s: chown of %s to %d %d failed: %s\n",
                         name, args[i], uid, gid, strerror(errno));
+                ++bad;
             }
             if (chmod(args[i], mode) < 0) {
                 fprintf(stderr, "%s: chmod of %s to %o failed: %s\n",
                         name, args[i], mode, strerror(errno));
+                ++bad;
             }
         }
     }
@@ -673,6 +597,10 @@ done:
     }
     free(args);
 
+    if (bad) {
+        free(result);
+        return ErrorAbort(state, "%s: some changes failed", name);
+    }
     return StringValue(result);
 }
 
@@ -724,7 +652,7 @@ Value* FileGetPropFn(const char* name, State* state, int argc, Expr* argv[]) {
 
     buffer = malloc(st.st_size+1);
     if (buffer == NULL) {
-        ErrorAbort(state, "%s: failed to alloc %d bytes", name, st.st_size+1);
+        ErrorAbort(state, "%s: failed to alloc %lld bytes", name, st.st_size+1);
         goto done;
     }
 
@@ -736,7 +664,7 @@ Value* FileGetPropFn(const char* name, State* state, int argc, Expr* argv[]) {
     }
 
     if (fread(buffer, 1, st.st_size, f) != st.st_size) {
-        ErrorAbort(state, "%s: failed to read %d bytes from %s",
+        ErrorAbort(state, "%s: failed to read %lld bytes from %s",
                    name, st.st_size+1, filename);
         fclose(f);
         goto done;
@@ -920,7 +848,7 @@ Value* ApplyPatchFn(const char* name, State* state, int argc, Expr* argv[]) {
 
     int result = applypatch(source_filename, target_filename,
                             target_sha1, target_size,
-                            patchcount, patch_sha_str, patches);
+                            patchcount, patch_sha_str, patches, NULL);
 
     for (i = 0; i < patchcount; ++i) {
         FreeValue(patches[i]);
@@ -988,6 +916,14 @@ Value* UIPrintFn(const char* name, State* state, int argc, Expr* argv[]) {
     fprintf(((UpdaterInfo*)(state->cookie))->cmd_pipe, "ui_print\n");
 
     return StringValue(buffer);
+}
+
+Value* WipeCacheFn(const char* name, State* state, int argc, Expr* argv[]) {
+    if (argc != 0) {
+        return ErrorAbort(state, "%s() expects no args, got %d", name, argc);
+    }
+    fprintf(((UpdaterInfo*)(state->cookie))->cmd_pipe, "wipe_cache\n");
+    return StringValue(strdup("t"));
 }
 
 Value* RunProgramFn(const char* name, State* state, int argc, Expr* argv[]) {
@@ -1147,8 +1083,6 @@ void RegisterInstallFunctions() {
     RegisterFunction("delete_recursive", DeleteFn);
     RegisterFunction("package_extract_dir", PackageExtractDirFn);
     RegisterFunction("package_extract_file", PackageExtractFileFn);
-    RegisterFunction("retouch_binaries", RetouchBinariesFn);
-    RegisterFunction("undo_retouch_binaries", UndoRetouchBinariesFn);
     RegisterFunction("symlink", SymlinkFn);
     RegisterFunction("set_perm", SetPermFn);
     RegisterFunction("set_perm_recursive", SetPermFn);
@@ -1163,6 +1097,8 @@ void RegisterInstallFunctions() {
 
     RegisterFunction("read_file", ReadFileFn);
     RegisterFunction("sha1_check", Sha1CheckFn);
+
+    RegisterFunction("wipe_cache", WipeCacheFn);
 
     RegisterFunction("ui_print", UIPrintFn);
 

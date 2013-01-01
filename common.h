@@ -36,11 +36,13 @@ void ui_clear_key_queue();
 void ui_print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void ui_printlogtail(int nb_lines);
 
+void ui_delete_line();
 void ui_set_show_text(int value);
 void ui_set_nice(int enabled);
 #define ui_nice_print(...) { ui_set_nice(1); ui_print(__VA_ARGS__); ui_set_nice(0); }
 int ui_was_niced();
 int ui_get_text_cols();
+void ui_increment_frame();
 
 // Display some header text followed by a menu of items, which appears
 // at the top of the screen (in place of any scrolling ui_print()
@@ -129,6 +131,9 @@ typedef struct {
     const char* fs_options;
 
     const char* fs_options2;
+
+    const char* lun;          // (/sdcard, /emmc, /external_sd only) LUN file to
+                              // use when mounting via USB mass storage
 } Volume;
 
 typedef struct {
@@ -152,5 +157,8 @@ typedef struct {
 
 // fopen a file, mounting volumes and making parent dirs as necessary.
 FILE* fopen_path(const char *path, const char *mode);
+
+int ui_get_selected_item();
+int ui_is_showing_back_button();
 
 #endif  // RECOVERY_COMMON_H

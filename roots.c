@@ -70,6 +70,8 @@ static int parse_options(char* options, Volume* volume) {
             volume->fs_options = strdup(option + 11);
         } else if (strncmp(option, "fs_options2=", 12) == 0) {
             volume->fs_options2 = strdup(option + 12);
+        } else if (strncmp(option, "lun=", 4) == 0) {
+            volume->lun = strdup(option + 4);
         } else {
             LOGE("bad option \"%s\"\n", option);
             return -1;
@@ -90,6 +92,7 @@ void load_volume_table() {
     device_volumes[0].fs_type2 = NULL;
     device_volumes[0].fs_options = NULL;
     device_volumes[0].fs_options2 = NULL;
+    device_volumes[0].lun = NULL;
     device_volumes[0].length = 0;
     num_volumes = 1;
 
@@ -139,6 +142,7 @@ void load_volume_table() {
             device_volumes[num_volumes].fs_type2 = NULL;
             device_volumes[num_volumes].fs_options = NULL;
             device_volumes[num_volumes].fs_options2 = NULL;
+            device_volumes[num_volumes].lun = NULL;
 
             if (parse_options(options, device_volumes + num_volumes) != 0) {
                 LOGE("skipping malformed recovery.fstab line: %s\n", original);
@@ -321,6 +325,9 @@ int ensure_path_unmounted(const char* path) {
     return unmount_mounted_volume(mv);
 }
 
+extern struct selabel_handle *sehandle;
+static int handle_data_media = 0;
+
 int format_volume(const char* volume) {
     Volume* v = volume_for_path(volume);
     if (v == NULL) {
@@ -332,7 +339,7 @@ int format_volume(const char* volume) {
     }
     // check to see if /data is being formatted, and if it is /data/media
     // Note: the /sdcard check is redundant probably, just being safe.
-    if (strstr(volume, "/data") == volume && volume_for_path("/sdcard") == NULL && is_data_media()) {
+    if (strstr(volume, "/data") == volume && is_data_media() && !handle_data_media) {
         return format_unknown_device(NULL, volume, NULL);
     }
     if (strcmp(v->fs_type, "ramdisk") == 0) {
@@ -377,7 +384,7 @@ int format_volume(const char* volume) {
     }
 
     if (strcmp(v->fs_type, "ext4") == 0) {
-        int result = make_ext4fs(v->device, v->length);
+        int result = make_ext4fs(v->device, v->length, volume, sehandle);
         if (result != 0) {
             LOGE("format_volume: make_extf4fs failed on %s\n", v->device);
             return -1;
@@ -390,4 +397,8 @@ int format_volume(const char* volume) {
     return -1;
 #endif
     return format_unknown_device(v->device, volume, v->fs_type);
+}
+
+void handle_data_media_format(int handle) {
+  handle_data_media = handle;
 }

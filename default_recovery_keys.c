@@ -37,7 +37,7 @@ int device_handle_key(int key_code, int visible) {
                 if (ui_get_showing_back_button()) {
                     return SELECT_ITEM;
                 }
-                if (!get_allow_toggle_display() && ui_menu_level > 0) {
+                if (!get_allow_toggle_display() && !ui_root_menu) {
                     return GO_BACK;
                 }
                 break;
@@ -55,11 +55,11 @@ int device_handle_key(int key_code, int visible) {
                 if (ui_get_showing_back_button()) {
                     return SELECT_ITEM;
                 }
-                if (!get_allow_toggle_display() && ui_menu_level > 0) {
+                if (!get_allow_toggle_display() && !ui_root_menu) {
                     return GO_BACK;
                 }
             case KEY_BACK:
-                if (ui_menu_level > 0) {
+                if (!ui_root_menu) {
                     return GO_BACK;
                 }
         }
