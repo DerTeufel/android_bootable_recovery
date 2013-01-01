@@ -1,4 +1,4 @@
-/*
+/*k
  * Copyright (C) 2007 The Android Open Source Project
  * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
  *
@@ -220,7 +220,9 @@ get_args(int *argc, char ***argv) {
         strlcat(boot.recovery, (*argv)[i], sizeof(boot.recovery));
         strlcat(boot.recovery, "\n", sizeof(boot.recovery));
     }
-    set_bootloader_message(&boot);
+    if (device_flash_type() == MTD) {
+        set_bootloader_message(&boot);
+    }
 }
 
 void
@@ -282,10 +284,12 @@ finish_recovery(const char *send_intent) {
     copy_log_file(LAST_LOG_FILE, false);
     chmod(LAST_LOG_FILE, 0640);
 
-    // Reset to normal system boot so recovery won't cycle indefinitely.
-    struct bootloader_message boot;
-    memset(&boot, 0, sizeof(boot));
-    set_bootloader_message(&boot);
+    if (device_flash_type() == MTD) {
+        // Reset to mormal system boot so recovery won't cycle indefinitely.
+        struct bootloader_message boot;
+        memset(&boot, 0, sizeof(boot));
+        set_bootloader_message(&boot);
+    }
 
     // Remove the command file, so recovery won't repeat indefinitely.
     if (ensure_path_mounted(COMMAND_FILE) != 0 ||
@@ -427,10 +431,11 @@ prepend_title(char** headers) {
 int
 get_menu_selection(char** headers, char** items, int menu_only,
                    int initial_selection) {
+    //printf("getting a menu selection\n");
     // throw away keys pressed previously, so user doesn't
     // accidentally trigger menu items.
     ui_clear_key_queue();
-    
+
     ++ui_menu_level;
     int item_count = ui_start_menu(headers, items, initial_selection);
     int selected = initial_selection;
@@ -442,6 +447,7 @@ get_menu_selection(char** headers, char** items, int menu_only,
     int wrap_count = 0;
 
     while (chosen_item < 0 && chosen_item != GO_BACK) {
+        usleep(25000);
         int key = ui_wait_key();
         int visible = ui_text_visible();
 
@@ -487,21 +493,6 @@ get_menu_selection(char** headers, char** items, int menu_only,
             }
         } else if (!menu_only) {
             chosen_item = action;
-        }
-
-        if (abs(selected - old_selected) > 1) {
-            wrap_count++;
-            if (wrap_count == 3) {
-                wrap_count = 0;
-                if (ui_get_showing_back_button()) {
-                    ui_print("Back menu button disabled.\n");
-                    ui_set_showing_back_button(0);
-                }
-                else {
-                    ui_print("Back menu button enabled.\n");
-                    ui_set_showing_back_button(1);
-                }
-            }
         }
     }
 
@@ -655,32 +646,21 @@ wipe_data(int confirm) {
         }
 
         char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " Yes -- delete all user data",   // [7]
-                          " No",
-                          " No",
-                          " No",
-                          NULL };
+			  " Yes - Delete all user data", NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
+        if (chosen_item != 1) {
             return;
         }
     }
 
-    ui_print("\n-- Wiping data...\n");
+    ui_print("\n-- Wiping /data...\n");
     device_wipe_data();
     erase_volume("/data");
     erase_volume("/cache");
     if (has_datadata()) {
         erase_volume("/datadata");
     }
-    erase_volume("/sd-ext");
     erase_volume("/sdcard/.android_secure");
     ui_print("Data wipe complete.\n");
 }
@@ -692,7 +672,7 @@ prompt_and_wait() {
     for (;;) {
         finish_recovery(NULL);
         ui_reset_progress();
-        
+
         ui_menu_level = -1;
         allow_display_toggle = 1;
         int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
@@ -705,45 +685,47 @@ prompt_and_wait() {
 
         int status;
         switch (chosen_item) {
-            case ITEM_REBOOT:
-                poweroff=0;
-                return;
+             case ITEM_INSTALL_ZIP:
+                 show_install_update_menu();
+                 break;
 
-            case ITEM_WIPE_DATA:
-                wipe_data(ui_text_visible());
-                if (!ui_text_visible()) return;
-                break;
+             case ITEM_NANDROID:
+                 show_nandroid_menu();
+                 break;
 
-            case ITEM_WIPE_CACHE:
-                if (confirm_selection("Confirm wipe?", "Yes - Wipe Cache"))
-                {
-                    ui_print("\n-- Wiping cache...\n");
-                    erase_volume("/cache");
-                    ui_print("Cache wipe complete.\n");
-                    if (!ui_text_visible()) return;
-                }
-                break;
+             case ITEM_WIPE_CACHE:
+                 if (confirm_selection("Confirm wipe?", "Yes - Wipe cache & dalvik cache"))
+                 {
+                     ui_print("\n-- Wiping cache & dalvik cache...\n");
+                     erase_volume("/cache");
+		 if (0 != ensure_path_mounted("/data"))
+                     break;
+                     ensure_path_mounted("/cache");
+                     __system("rm -r /data/dalvik-cache");
+                     ui_print("Wiping dalvik cache...\n");
+                     ensure_path_unmounted("/data");
+                     ui_print("Cache & dalvik cache wipe complete.\n");
+                     if (!ui_text_visible()) return;
+                 }
+                 break;
 
-            case ITEM_APPLY_SDCARD:
-                show_install_update_menu();
-                break;
+             case ITEM_WIPE_DATA:
+                 wipe_data(ui_text_visible());
+                 if (!ui_text_visible()) return;
+                 break;
 
-            case ITEM_NANDROID:
-                show_nandroid_menu();
-                break;
+             case ITEM_PARTITION:
+                 show_partition_menu();
+                 break;
 
-            case ITEM_PARTITION:
-                show_partition_menu();
-                break;
+             case ITEM_ADVANCED:
+                 show_advanced_menu();
+                 break;
 
-            case ITEM_ADVANCED:
-                show_advanced_menu();
-                break;
-                
-            case ITEM_POWEROFF:
-                poweroff = 1;
-                return;
-        }
+             case ITEM_REBOOT:
+                 poweroff=0;
+                 return;
+         }
     }
 }
 
@@ -800,7 +782,7 @@ main(int argc, char **argv) {
 
     device_ui_init(&ui_parameters);
     ui_init();
-    ui_print(EXPAND(RECOVERY_VERSION)"\n");
+    //ui_print(EXPAND(RECOVERY_VERSION)"\n");
     load_volume_table();
     process_volumes();
     LOGI("Processing arguments.\n");

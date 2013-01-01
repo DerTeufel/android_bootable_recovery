@@ -45,6 +45,27 @@ static unsigned ev_count = 0;
 static unsigned ev_dev_count = 0;
 static unsigned ev_misc_count = 0;
 
+#define VIBRATOR_TIMEOUT_FILE	"/sys/class/timed_output/vibrator/enable"
+#define VIBRATOR_TIME_MS	25
+
+int vibrate(int timeout_ms) {
+    char str[20];
+    int fd;
+    int ret;
+    
+    fd = open(VIBRATOR_TIMEOUT_FILE, O_WRONLY);
+    if(fd < 0)
+        return -1;
+    
+    ret = snprintf(str, sizeof(str), "%d", timeout_ms);
+    ret = write(fd, str, ret);
+    
+    if(ret < 0)
+        return -1;
+        
+    return 0;
+}
+
 int ev_init(ev_callback input_cb, void *data)
 {
     DIR *dir;
@@ -60,7 +81,7 @@ int ev_init(ev_callback input_cb, void *data)
             if(strncmp(de->d_name,"event",5)) continue;
             fd = openat(dirfd(dir), de->d_name, O_RDONLY);
             if(fd < 0) continue;
-
+            //LOGE("oh...some inputs...oh...nice...");
             /* read the evbits of the input device */
             if (ioctl(fd, EVIOCGBIT(0, sizeof(ev_bits)), ev_bits) < 0) {
                 close(fd);
@@ -69,7 +90,9 @@ int ev_init(ev_callback input_cb, void *data)
 
             /* TODO: add ability to specify event masks. For now, just assume
              * that only EV_KEY and EV_REL event types are ever needed. */
-            if (!test_bit(EV_KEY, ev_bits) && !test_bit(EV_REL, ev_bits)) {
+             //commented out so the touch panel events are allowed through
+             printf("Loading (%s): %i\n", de->d_name, ev_bits);
+            if (!test_bit(EV_KEY, ev_bits) && !test_bit(EV_REL, ev_bits) && !test_bit(EV_ABS, ev_bits)) {
                 close(fd);
                 continue;
             }
@@ -135,11 +158,12 @@ void ev_dispatch(void)
 int ev_get_input(int fd, short revents, struct input_event *ev)
 {
     int r;
-
     if (revents & POLLIN) {
         r = read(fd, ev, sizeof(*ev));
-        if (r == sizeof(*ev))
+        if (r == sizeof(*ev)) {
             return 0;
+        }
+            
     }
     return -1;
 }
