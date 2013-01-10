@@ -702,14 +702,14 @@ prompt_and_wait() {
         int status;
         switch (chosen_item) {
             case ITEM_REBOOT:
-		ensure_path_mounted("/data");
-                __system("echo primary > /data/dualboot/rom");
+		ensure_path_mounted("/cache");
+                __system("echo primary > /cache/dualboot/rom");
                 poweroff=0;
                 return;
 
             case ITEM_REBOOT_SECONDARY:
-		ensure_path_mounted("/data");
-                __system("echo secondary > /data/dualboot/rom");
+		ensure_path_mounted("/cache");
+                __system("echo secondary > /cache/dualboot/rom");
                 poweroff=0;
                 return;
 
