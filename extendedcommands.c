@@ -568,7 +568,7 @@ void show_mount_usb_storage_menu()
         return;
 
     static char* headers[] = {  "USB Mass Storage device",
-                                "Leaving this menu unmount",
+                                "Leaving this menu unmounts",
                                 "your SD card from your PC.",
                                 "",
                                 NULL
@@ -595,9 +595,7 @@ int confirm_selection(const char* title, const char* confirm)
 
     char* confirm_headers[]  = {  title, "  THIS CAN NOT BE UNDONE.", "", NULL };
     int one_confirm = 0 == stat("/sdcard/clockworkmod/.one_confirm", &info);
-#ifdef BOARD_TOUCH_RECOVERY
     one_confirm = 1;
-#endif 
     if (one_confirm) {
         char* items[] = { "No",
                         confirm, //" Yes -- wipe partition",   // [1]
@@ -1256,7 +1254,7 @@ static void partition_sdcard(const char* volume) {
     char cmd[PATH_MAX];
     setenv("SDPATH", sddevice, 1);
     sprintf(cmd, "sdparted -es %s -ss %s -efs ext3 -s", ext_sizes[ext_size], swap_sizes[swap_size]);
-    ui_print("Partitioning SD Card... please wait...\n");
+    ui_print("Partitioning sdcard... please wait...\n");
     if (0 == __system(cmd))
         ui_print("Done!\n");
     else
@@ -1385,9 +1383,10 @@ void show_dualboot_menu() {
                                 NULL
     };
 
-    char* list[] = { "enable mounting of primary system",
-        "enable mounting of secondary system",
-        "keep current system mounted after reboot recovery",
+    char* list[] = { "mounting of primary filesystem",
+        "mounting of secondary filesystem",
+        "enable mounting of pri. fs after reboot recovery",
+        "enable mounting of sec. fs after reboot recovery",
         NULL
     };
 
@@ -1395,20 +1394,34 @@ void show_dualboot_menu() {
     switch (chosen_item) {
         case 0:
 		ensure_path_mounted("/cache");
+    		int ret = 0;
 		__system("mkdir -p /cache/dualboot");
 		__system("cp /etc/primary.fstab /etc/fstab");
-		__system("echo primary > /cache/dualboot/unsecure");
+        	ret = __system("sbin/mount_primary");
+    		if (ret == 0)
+        	return 0;
+    		LOGE("failed to mount primary filesystem \n please reboot recovery and try again");
+    		return ret;
                 break;
         case 1:
 		ensure_path_mounted("/cache");
 		__system("mkdir -p /cache/dualboot");
 		__system("cp /etc/secondary.fstab /etc/fstab");
-		__system("echo secondary > /cache/dualboot/unsecure");
+        	ret = __system("sbin/mount_secondary");
+    		if (ret == 0)
+        	return 0;
+    		LOGE("failed to mount secondary filesystem \n please reboot recovery and try again");
+    		return ret;
                 break;
         case 2:
 		ensure_path_mounted("/cache");
 		__system("mkdir -p /cache/dualboot");
-		__system("touch /cache/dualboot/unsecure_recovery");
+		__system("echo primary > /cache/dualboot/unsecure");
+                break;
+        case 3:
+		ensure_path_mounted("/cache");
+		__system("mkdir -p /cache/dualboot");
+		__system("echo secondary > /cache/dualboot/unsecure");
                 break;
     }
 }

@@ -193,6 +193,13 @@ int try_mount(const char* device, const char* mount_point, const char* fs_type, 
         sprintf(mount_cmd, "mount -t %s -o%s %s %s", fs_type, fs_options, device, mount_point);
         ret = __system(mount_cmd);
     }
+    if (ret == 0) {
+        return 0;
+    } else if (strcmp(mount_point, "/data") == 0) { 
+	ret = __system("mount data");
+    } else if (strcmp(mount_point, "/system") == 0) { 
+	ret = __system("mount system");
+    }
     if (ret == 0)
         return 0;
     LOGW("failed to mount %s (%s)\n", device, strerror(errno));
@@ -280,7 +287,11 @@ int ensure_path_mounted_at_mount_point(const char* path, const char* mount_point
             return -1;
         }
         return mtd_mount_partition(partition, mount_point, v->fs_type, 0);
-    } else if (strcmp(v->fs_type, "ext4") == 0 ||
+    } /*else if (strcmp(v->fs_type, "data") == 0) {
+            LOGE("trying to mount data");
+	__system("mount /data");
+          return 0;*/
+    else if (strcmp(v->fs_type, "ext4") == 0 ||
                strcmp(v->fs_type, "ext3") == 0 ||
                strcmp(v->fs_type, "rfs") == 0 ||
                strcmp(v->fs_type, "vfat") == 0) {

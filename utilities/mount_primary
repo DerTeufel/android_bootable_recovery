@@ -1,0 +1,27 @@
+#!/sbin/sh
+
+#
+#
+# mount primary filesystem
+
+MOUNT="busybox mount"
+UMOUNT="busybox umount -f"
+CHOWN="busybox chown"
+CHMOD="busybox chmod"
+
+$UMOUNT /system
+$UMOUNT /data
+$UMOUNT /.secondrom
+
+if $BB grep -q "secondary_system" /proc/mounts ||
+	$BB grep -q "loop0" /proc/mounts ; then
+exit 1
+fi
+
+$MOUNT -t ext4 -o rw /dev/lvpool/userdata /data
+$MOUNT -t ext4 -o rw /dev/lvpool/system /system
+
+if ! $BB grep -q "lvpool/system" /proc/mounts ||
+	! $BB grep -q "userdata" /proc/mounts ; then
+exit 1
+fi
