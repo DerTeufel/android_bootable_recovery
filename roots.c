@@ -241,8 +241,18 @@ int ensure_path_mounted(const char* path) {
 int ensure_path_mounted_at_mount_point(const char* path, const char* mount_point) {
     Volume* v = volume_for_path(path);
     if (v == NULL) {
+    int ret = 0;
+    if (strcmp(path, "/data") == 0) { 
+	ret = __system("mount data");
+    } else if (strcmp(path, "/system") == 0) { 
+	ret = __system("mount system");
+    }
+	if (ret == 0) {
+	return 0;
+	} else {
         LOGE("unknown volume for path [%s]\n", path);
         return -1;
+	}
     }
     if (is_data_media_volume_path(path)) {
         LOGI("using /data/media for %s.\n", path);

@@ -109,10 +109,13 @@ int install_zip(const char* packagefilepath)
     return 0;
 }
 
+
 #define ITEM_CHOOSE_ZIP       0
-#define ITEM_APPLY_SDCARD     1
-#define ITEM_SIG_CHECK        2
-#define ITEM_CHOOSE_ZIP_INT   3
+#define ITEM_ROM_SEC          1
+#define ITEM_APPLY_SDCARD     2
+#define ITEM_SIG_CHECK        3
+#define ITEM_CHOOSE_ZIP_INT   4
+#define ITEM_ROM_SEC_OTHER_SD 5
 
 void show_install_update_menu()
 {
@@ -122,19 +125,23 @@ void show_install_update_menu()
     };
     
     char* install_menu_items[] = {  "choose zip from sdcard",
+                                    "install rom as secondary from sdcard",
                                     "apply /sdcard/update.zip",
                                     "toggle signature verification",
+                                    NULL,
                                     NULL,
                                     NULL };
 
     char *other_sd = NULL;
     if (volume_for_path("/emmc") != NULL) {
         other_sd = "/emmc/";
-        install_menu_items[3] = "choose zip from internal sdcard";
+        install_menu_items[4] = "choose zip from internal sdcard";
+        install_menu_items[5] = "install rom as secondary from internal sdcard";
     }
     else if (volume_for_path("/external_sd") != NULL) {
         other_sd = "/external_sd/";
-        install_menu_items[3] = "choose zip from external sdcard";
+        install_menu_items[4] = "choose zip from external sdcard";
+        install_menu_items[5] = "install rom as secondary from external sdcard";
     }
     
     for (;;)
@@ -154,9 +161,16 @@ void show_install_update_menu()
             case ITEM_CHOOSE_ZIP:
                 show_choose_zip_menu("/sdcard/");
                 break;
+            case ITEM_ROM_SEC:
+                show_install_secondary_menu("/sdcard/");
+                break;
             case ITEM_CHOOSE_ZIP_INT:
                 if (other_sd != NULL)
                     show_choose_zip_menu(other_sd);
+                break;
+            case ITEM_ROM_SEC_OTHER_SD:
+                if (other_sd != NULL)
+                show_install_secondary_menu(other_sd);
                 break;
             default:
                 return;
@@ -379,8 +393,38 @@ void show_choose_zip_menu(const char *mount_point)
     static char* confirm_install  = "Confirm install?";
     static char confirm[PATH_MAX];
     sprintf(confirm, "Yes - Install %s", basename(file));
-    if (confirm_selection(confirm_install, confirm))
-        install_zip(file);
+    if (confirm_selection(confirm_install, confirm)) {
+	install_zip(file);
+    }
+}
+
+void show_install_secondary_menu(const char *zip_path)
+{
+    if (ensure_path_mounted(zip_path) != 0) {
+        LOGE("Can't mount %s\n", zip_path);
+        return;
+    }
+
+    static char* headers[] = {  "Choose your rom",
+                                "",
+                                NULL
+    };
+
+    char* file = choose_file_menu(zip_path, ".zip", headers);
+    if (file == NULL)
+        return;
+    if (confirm_selection("Install rom?", "Yes - Install")) {
+        char tmp[PATH_MAX];
+	__system("cp /etc/secondary.fstab /etc/fstab");
+	sprintf(tmp, "dualboot_mod.sh %s %s", zip_path, file);
+	int ret = 0;
+	ret = __system(tmp);
+	if (ret == 0) {
+	ui_print("Rom modified...installing....\n");
+	install_zip(file);
+	__system("cp /etc/default.fstab /etc/fstab");
+	}
+    }
 }
 
 void show_nandroid_restore_menu(const char* path)
