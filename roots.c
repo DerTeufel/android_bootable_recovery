@@ -420,7 +420,7 @@ int format_volume(const char* volume) {
 
     if (strcmp(v->fs_type, "ext4") == 0) {
 	int ret = 1;
-	if (strcmp(v->device, "data.img") == 0) {
+	if (strstr(v->device, "data.img") != NULL) {
 	   ret = 0;
     	   static char tmp[PATH_MAX];
            sprintf(tmp, "mount data; rm -rf /data/*; rm -rf /data/.*");
@@ -428,7 +428,8 @@ int format_volume(const char* volume) {
     	   if (ret == 0) {
            	return 0;
 	   } else {
-            	LOGE("rm -rf failed on %s\n", v->device);
+            	LOGE("rm -rf failed  %s\n", v->device);
+           }
 	}
 	if (ret != 0) {
         int result = make_ext4fs(v->device, v->length, volume, sehandle);
