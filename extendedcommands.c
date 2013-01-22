@@ -99,6 +99,7 @@ int install_zip(const char* packagefilepath)
     }
     int status = install_package(packagefilepath);
     ui_reset_progress();
+    __system("sbin/mount_fs.sh umount");
     if (status != INSTALL_SUCCESS) {
         ui_set_background(BACKGROUND_ICON_ERROR);
         ui_print("Installation aborted.\n");
@@ -395,7 +396,6 @@ void show_choose_zip_menu(const char *mount_point, const char *location)
 	if (ret == 0) {
 	ui_print("Zip modified...installing....\n");
 	install_zip(file);
-	__system("sbin/mount_fs.sh umount");
 	} else { // kernel
 	install_zip(file);
 	}
@@ -1494,16 +1494,14 @@ void show_dualboot_menu() {
     switch (chosen_item) {
     	int ret = 0;
         case 0:
-		__system("cp /etc/primary.fstab /etc/fstab");
-        	ret = __system("sbin/mount_primary");
+        	ret = 	__system("sbin/mount_fs.sh primary");
     		if (ret == 0)
         	return 0;
     		LOGE("failed to mount primary filesystem \n please reboot recovery and try again");
     		return ret;
                 break;
         case 1:
-		__system("cp /etc/secondary.fstab /etc/fstab");
-        	ret = __system("sbin/mount_secondary");
+	__system("sbin/mount_fs.sh secondary");
     		if (ret == 0)
         	return 0;
     		LOGE("failed to mount secondary filesystem \n please reboot recovery and try again");

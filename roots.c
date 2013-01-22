@@ -424,7 +424,7 @@ int format_volume(const char* volume) {
 	   ret = 0;
     	   static char tmp[PATH_MAX];
            sprintf(tmp, "mount data; rm -rf /data/*; rm -rf /data/.*");
-	   ret = __system(tmp);
+	   __system(tmp);
     	   if (ret == 0) {
            	return 0;
 	   } else {

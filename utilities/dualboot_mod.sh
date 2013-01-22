@@ -12,13 +12,13 @@ echo "mountpoint: $MOUNTPOINT"
 echo "file: $FILE"
 echo "location: $LOCATION"
 mkdir -p $MOUNTPOINT/dualboot || exit 1
-rm -rf $MOUNTPOINT/dualboot/META-INF
+rm -rf $MOUNTPOINT/dualboot/*
 
 #### unzip META-INF
 echo "unzip_binary -o $FILE $updater_script_path -d $MOUNTPOINT/dualboot"
 unzip_binary -o $FILE $updater_script_path -d "$MOUNTPOINT"dualboot || exit 1
 
-if ( "$LOCATION" == "primaryrom") ; then
+if [ "$LOCATION" == "primaryrom" ] ; then
 ui_print "preparing rom"
 ui_print "please be patient"
 sed 's|/dev/lvpool/secondary_system|/dev/lvpool/system|g' -i "$MOUNTPOINT"dualboot/$updater_script_path || exit 1
@@ -31,7 +31,7 @@ zip $FILE $updater_script_path boot.img
 ui_print "installing rom now ..."
 cd /
 
-elif ( "$LOCATION" == "secondaryrom") ; then 
+elif [ "$LOCATION" == "secondaryrom" ] ; then 
 #### change the mountpoint ####
 sed 's|/dev/lvpool/system|/dev/lvpool/secondary_system|g' -i "$MOUNTPOINT"dualboot/$updater_script_path || exit 1
 sed 's|/dev/lvpool/userdata|/.secondrom/.secondrom/data.img|g' -i "$MOUNTPOINT"dualboot/$updater_script_path
