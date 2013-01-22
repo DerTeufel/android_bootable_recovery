@@ -162,7 +162,7 @@ void show_install_update_menu()
                 show_choose_zip_menu("/sdcard/");
                 break;
             case ITEM_ROM_SEC:
-                show_install_secondary_menu("/sdcard/");
+                show_install_rom_menu("/sdcard/");
                 break;
             case ITEM_CHOOSE_ZIP_INT:
                 if (other_sd != NULL)
@@ -170,7 +170,7 @@ void show_install_update_menu()
                 break;
             case ITEM_ROM_SEC_OTHER_SD:
                 if (other_sd != NULL)
-                show_install_secondary_menu(other_sd);
+                show_install_rom_menu(other_sd);
                 break;
             default:
                 return;
@@ -398,7 +398,7 @@ void show_choose_zip_menu(const char *mount_point)
     }
 }
 
-void show_install_secondary_menu(const char *zip_path)
+void show_install_rom_menu(const char *zip_path)
 {
     if (ensure_path_mounted(zip_path) != 0) {
         LOGE("Can't mount %s\n", zip_path);
@@ -410,6 +410,10 @@ void show_install_secondary_menu(const char *zip_path)
                                 NULL
     };
 
+	int i;
+	for(i = 0; (*headers)[i] == ' '; i++) { }
+	*headers += i;
+
     char* file = choose_file_menu(zip_path, ".zip", headers);
     if (file == NULL)
         return;
@@ -418,6 +422,7 @@ void show_install_secondary_menu(const char *zip_path)
 	__system("cp /etc/secondary.fstab /etc/fstab");
 	sprintf(tmp, "dualboot_mod.sh %s %s", zip_path, file);
 	int ret = 0;
+	__system("sbin/mount_secondary");
 	ret = __system(tmp);
 	if (ret == 0) {
 	ui_print("Rom modified...installing....\n");
@@ -1436,10 +1441,8 @@ void show_dualboot_menu() {
 
     int chosen_item = get_menu_selection(headers, list, 0, 0);
     switch (chosen_item) {
+    	int ret = 0;
         case 0:
-		ensure_path_mounted("/cache");
-    		int ret = 0;
-		__system("mkdir -p /cache/dualboot");
 		__system("cp /etc/primary.fstab /etc/fstab");
         	ret = __system("sbin/mount_primary");
     		if (ret == 0)
@@ -1448,8 +1451,6 @@ void show_dualboot_menu() {
     		return ret;
                 break;
         case 1:
-		ensure_path_mounted("/cache");
-		__system("mkdir -p /cache/dualboot");
 		__system("cp /etc/secondary.fstab /etc/fstab");
         	ret = __system("sbin/mount_secondary");
     		if (ret == 0)
@@ -1459,12 +1460,12 @@ void show_dualboot_menu() {
                 break;
         case 2:
 		ensure_path_mounted("/cache");
-		__system("mkdir -p /cache/dualboot");
+		mkdir("/cache/dualboot", 0755);
 		__system("echo primary > /cache/dualboot/unsecure");
                 break;
         case 3:
 		ensure_path_mounted("/cache");
-		__system("mkdir -p /cache/dualboot");
+		mkdir("/cache/dualboot", 0755);
 		__system("echo secondary > /cache/dualboot/unsecure");
                 break;
     }

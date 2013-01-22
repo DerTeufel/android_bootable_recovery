@@ -297,11 +297,7 @@ int ensure_path_mounted_at_mount_point(const char* path, const char* mount_point
             return -1;
         }
         return mtd_mount_partition(partition, mount_point, v->fs_type, 0);
-    } /*else if (strcmp(v->fs_type, "data") == 0) {
-            LOGE("trying to mount data");
-	__system("mount /data");
-          return 0;*/
-    else if (strcmp(v->fs_type, "ext4") == 0 ||
+    } else if (strcmp(v->fs_type, "ext4") == 0 ||
                strcmp(v->fs_type, "ext3") == 0 ||
                strcmp(v->fs_type, "rfs") == 0 ||
                strcmp(v->fs_type, "vfat") == 0) {
@@ -423,12 +419,25 @@ int format_volume(const char* volume) {
     }
 
     if (strcmp(v->fs_type, "ext4") == 0) {
+	int ret = 1;
+	if (strcmp(v->device, "data.img") == 0) {
+	   ret = 0;
+    	   static char tmp[PATH_MAX];
+           sprintf(tmp, "mount data; rm -rf /data/*; rm -rf /data/.*");
+	   ret = __system(tmp);
+    	   if (ret == 0) {
+           	return 0;
+	   } else {
+            	LOGE("rm -rf failed on %s\n", v->device);
+	}
+	if (ret != 0) {
         int result = make_ext4fs(v->device, v->length, volume, sehandle);
-        if (result != 0) {
-            LOGE("format_volume: make_extf4fs failed on %s\n", v->device);
-            return -1;
-        }
-        return 0;
+           if (result != 0) {
+            	LOGE("format_volume: make_extf4fs failed on %s\n", v->device);
+            	return -1;
+           }
+           return 0;
+	}
     }
 
 #if 0

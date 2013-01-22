@@ -9,11 +9,24 @@ MOUNT="busybox mount"
 UMOUNT="busybox umount -f"
 CHOWN="busybox chown"
 CHMOD="busybox chmod"
+
 mount_sdcard=0
 
 $UMOUNT /system
 $UMOUNT /data
 $UMOUNT /datadata
+
+
+########## if called with umount parameter, just umount everything and exit ######################
+if [ "$1" == "umount" ] ; then
+   $BB cp /etc/default.fstab /etc/fstab
+   if $BB grep -q "/system" /proc/mounts ||
+	$BB grep -q "/data" /proc/mounts ; then
+	exit 1
+   fi
+else ### if not, mount secondary filesystem
+
+$BB cp /etc/secondary.fstab /etc/fstab
 
 if $BB grep -q sdcard /proc/mounts ; then
 mount_sdcard=1
