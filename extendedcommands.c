@@ -386,9 +386,19 @@ void show_choose_zip_menu(const char *mount_point, const char *location)
 	if (strstr(location, "primary") != NULL) {
 		// installing to primary filesystem
 		__system("sbin/mount_fs.sh primary");
+			if ( 0 == ensure_path_mounted("/sdcard") )
+			{   
+			mkdir("/sdcard/devil/dualboot", S_IRWXU);
+			system("cp /tmp/recovery.log /sdcard/devil/recovery.log");
+			}
 	} else if (strstr(location, "secondary") != NULL) {
 		// installing to secondary filesystem
 		__system("sbin/mount_fs.sh secondary");
+			if ( 0 == ensure_path_mounted("/sdcard") )
+			{   
+			mkdir("/sdcard/devil/dualboot", S_IRWXU);
+			system("cp /tmp/recovery.log /sdcard/devil/recovery.log");
+			}
 	}
  
 	if (strstr(location, "kernel") != NULL) { // kernel or modem
@@ -403,7 +413,12 @@ void show_choose_zip_menu(const char *mount_point, const char *location)
 	   	   install_zip(file);
 	   	} else {
 	   	   ui_print("Something went wrong...\n");
-	   	   ui_print("log: tmp/recovery.log\n");
+			if ( 0 == ensure_path_mounted("/sdcard") )
+			{   
+			mkdir("/sdcard/devil/dualboot", S_IRWXU);
+			system("cp /tmp/recovery.log /sdcard/devil/recovery.log");
+			ui_print("/tmp/recovery.log was copied to /sdcard/devil/dualboot/recovery.log.\n");
+			}
 		}
 	} 
     }
