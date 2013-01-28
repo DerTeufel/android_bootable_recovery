@@ -384,21 +384,28 @@ void show_choose_zip_menu(const char *mount_point, const char *location)
     if (confirm_selection(confirm_install, confirm)) {
         char tmp[PATH_MAX];
 	if (strstr(location, "primary") != NULL) {
-	// installing to primary filesystem
-	__system("sbin/mount_fs.sh primary");
+		// installing to primary filesystem
+		__system("sbin/mount_fs.sh primary");
 	} else if (strstr(location, "secondary") != NULL) {
-	// installing to secondary filesystem
-	__system("sbin/mount_fs.sh secondary");
+		// installing to secondary filesystem
+		__system("sbin/mount_fs.sh secondary");
 	}
-	sprintf(tmp, "dualboot_mod.sh %s %s %s", mount_point, file, location);
-	int ret = 0;
-	ret = __system(tmp);
-	if (ret == 0) {
-	ui_print("Zip modified...installing....\n");
-	install_zip(file);
-	} else { // kernel
-	install_zip(file);
-	}
+ 
+	if (strstr(location, "kernel") != NULL) { // kernel or modem
+	   	ui_print("Installing kernel....\n");
+	   	install_zip(file);
+	} else {
+	   	sprintf(tmp, "dualboot_mod.sh %s %s %s", mount_point, file, location);
+	   	int ret = 0;
+	   	ret = __system(tmp);
+	   	if (ret == 0) {
+	   	   ui_print("Zip modified...installing....\n");
+	   	   install_zip(file);
+	   	} else {
+	   	   ui_print("Something went wrong...\n");
+	   	   ui_print("log: tmp/recovery.log\n");
+		}
+	} 
     }
 }
 
@@ -1494,14 +1501,14 @@ void show_dualboot_menu() {
     switch (chosen_item) {
     	int ret = 0;
         case 0:
-        	ret = 	__system("sbin/mount_fs.sh primary");
+        	ret = __system("sbin/mount_fs.sh primary");
     		if (ret == 0)
         	return 0;
     		LOGE("failed to mount primary filesystem \n please reboot recovery and try again");
     		return ret;
                 break;
         case 1:
-	__system("sbin/mount_fs.sh secondary");
+        	ret = __system("sbin/mount_fs.sh secondary");
     		if (ret == 0)
         	return 0;
     		LOGE("failed to mount secondary filesystem \n please reboot recovery and try again");
