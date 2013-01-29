@@ -17,8 +17,8 @@ mkdir -p $MOUNTPOINT/dualboot/system/lib/
 
 
 #### unzip META-INF
-echo "unzip_binary -o $FILE $updater_script_path -d $MOUNTPOINT/dualboot"
 if [ ! -s $FILE ] ; then
+echo "could not find the file! Are there spaces in the name or path?"
 exit 2
 fi
 
@@ -35,9 +35,16 @@ sed 's|/.secondrom/.secondrom/data.img|/dev/lvpool/userdata|g' -i "$MOUNTPOINT"d
 dd if=/dev/mtd/mtd0 of="$MOUNTPOINT"dualboot/boot.img || exit 1
 
 #### get the modules
-cp -R system/lib/modules/ "$MOUNTPOINT"dualboot/system/lib/ || exit 1
+if [ -e system/lib/modules/ ] ; then
+cp -R system/lib/modules/ "$MOUNTPOINT"dualboot/system/lib/
+fi
 cd $MOUNTPOINT/dualboot
+if [ -e system/lib/modules/ ] ; then
 zip $FILE $updater_script_path system/lib/modules/*.ko boot.img
+else
+zip $FILE $updater_script_path boot.img
+fi
+
 echo "installing rom now ..."
 cd /
 

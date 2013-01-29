@@ -474,37 +474,7 @@ void show_location_menu(const char *mountp)
 		}
 	}
 }
-/*
-void show_install_rom_menu(const char *zip_path)
-{
-    if (ensure_path_mounted(zip_path) != 0) {
-        LOGE("Can't mount %s\n", zip_path);
-        return;
-    }
 
-    static char* headers[] = {  "Choose your rom",
-                                "",
-                                NULL
-    };
-
-    char* file = choose_file_menu(zip_path, ".zip", headers);
-    if (file == NULL)
-        return;
-    if (confirm_selection("Install rom?", "Yes - Install")) {
-        char tmp[PATH_MAX];
-	__system("cp /etc/secondary.fstab /etc/fstab");
-	sprintf(tmp, "dualboot_mod.sh %s %s", zip_path, file);
-	int ret = 0;
-	__system("sbin/mount_secondary");
-	ret = __system(tmp);
-	if (ret == 0) {
-	ui_print("Rom modified...installing....\n");
-	install_zip(file);
-	__system("cp /etc/default.fstab /etc/fstab");
-	}
-    }
-}
-*/
 void show_nandroid_restore_menu(const char* path)
 {
     if (ensure_path_mounted(path) != 0) {
