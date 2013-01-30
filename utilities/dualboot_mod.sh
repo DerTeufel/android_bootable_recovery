@@ -16,6 +16,7 @@ mkdir -p $MOUNTPOINT/dualboot || exit 1
 mkdir -p $MOUNTPOINT/dualboot/system/lib/
 
 
+if [ "$LOCATION" == "primaryrom" ] ; then
 #### unzip META-INF
 if [ ! -s $FILE ] ; then
 echo "could not find the file! Are there spaces in the name or path?"
@@ -24,8 +25,6 @@ fi
 
 unzip_binary -o $FILE $updater_script_path -d "$MOUNTPOINT"dualboot || exit 1
 
-
-if [ "$LOCATION" == "primaryrom" ] ; then
 echo "preparing rom"
 echo "please be patient"
 sed 's|/dev/lvpool/secondary_system|/dev/lvpool/system|g' -i "$MOUNTPOINT"dualboot/$updater_script_path
@@ -48,7 +47,15 @@ fi
 echo "installing rom now ..."
 cd /
 
-elif [ "$LOCATION" == "secondaryrom" ] ; then 
+elif [ "$LOCATION" == "secondaryrom" ] ; then
+
+#### unzip META-INF
+if [ ! -s $FILE ] ; then
+echo "could not find the file! Are there spaces in the name or path?"
+exit 2
+fi
+
+unzip_binary -o $FILE $updater_script_path -d "$MOUNTPOINT"dualboot || exit 1
 #### change the mountpoint ####
 sed 's|/dev/lvpool/system|/dev/lvpool/secondary_system|g' -i "$MOUNTPOINT"dualboot/$updater_script_path || exit 1
 sed 's|/dev/lvpool/userdata|/.secondrom/.secondrom/data.img|g' -i "$MOUNTPOINT"dualboot/$updater_script_path
