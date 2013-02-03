@@ -386,7 +386,7 @@ void show_choose_zip_menu(const char *mount_point, const char *location)
 	if (strstr(location, "primary") != NULL) {
 		// installing to primary filesystem
 		__system("sbin/mount_fs.sh primary");
-			if ( 0 == ensure_path_mounted("/sdcard") )
+			if (ensure_path_mounted("/sdcard") == 0 )
 			{   
 			mkdir("/sdcard/devil/dualboot", S_IRWXU);
 			system("cp /tmp/recovery.log /sdcard/devil/recovery.log");
@@ -402,9 +402,12 @@ void show_choose_zip_menu(const char *mount_point, const char *location)
 	}
  
 	if (strstr(location, "kernel") != NULL) { // kernel or modem
+		ensure_path_unmounted("/system");
+		ensure_path_unmounted("/data");
 	   	ui_print("Installing kernel....\n");
 	   	install_zip(file);
 	} else {
+		ui_print("Preparing your zip...\n");
 	   	sprintf(tmp, "dualboot_mod.sh %s %s %s", mount_point, file, location);
 	   	int ret = 0;
 	   	ret = __system(tmp);
