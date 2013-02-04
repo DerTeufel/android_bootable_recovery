@@ -64,7 +64,9 @@ sed 's|/dev/lvpool/userdata|/.secondrom/.secondrom/data.img|g' -i "$MOUNTPOINT"d
 dd if=/dev/mtd/mtd0 of="$MOUNTPOINT"dualboot/boot.img || exit 1
 
 #### get the modules
-cp -R system/lib/modules/ "$MOUNTPOINT"dualboot/system/lib/ || exit 1
+if [ -e system/lib/modules/ ] ; then
+cp -R system/lib/modules/ "$MOUNTPOINT"dualboot/system/lib/
+fi
 cd $MOUNTPOINT/dualboot
 zip $FILE $updater_script_path system/lib/modules/*.ko boot.img
 echo "installing rom now ..."
