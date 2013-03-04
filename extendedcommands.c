@@ -487,8 +487,6 @@ int control_usb_storage_set_lun(Volume* vol, bool enable, const char *lun_file) 
     }
 }
 
-#define STRINGIFY(s) #s
-
 int control_usb_storage_for_lun(Volume* vol, bool enable) {
     static const char* lun_files[] = {
 #ifdef BOARD_UMS_LUNFILE
@@ -496,7 +494,7 @@ int control_usb_storage_for_lun(Volume* vol, bool enable) {
 #endif
 
 #ifdef TARGET_USE_CUSTOM_LUN_FILE_PATH
-        STRINGIFY(TARGET_USE_CUSTOM_LUN_FILE_PATH),
+        TARGET_USE_CUSTOM_LUN_FILE_PATH,
 #endif
         "/sys/devices/platform/usb_mass_storage/lun%d/file",
         "/sys/devices/platform/s3c-usbgadget/gadget/lun1/file",
@@ -576,7 +574,7 @@ void show_mount_usb_storage_menu()
         return;
 
     static char* headers[] = {  "USB Mass Storage device",
-                                "Leaving this menu unmount",
+                                "Leaving this menu unmounts",
                                 "your SD card from your PC.",
                                 "",
                                 NULL
@@ -980,7 +978,7 @@ void show_nandroid_advanced_restore_menu(const char* path)
                                 "",
                                 "Choose an image to restore",
                                 "first. The next menu will",
-                                "you more options.",
+                                "show you more options.",
                                 "",
                                 NULL
     };
