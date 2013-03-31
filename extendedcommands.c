@@ -80,8 +80,17 @@ void write_string_to_file(const char* filename, const char* string) {
     sprintf(tmp, "mkdir -p $(dirname %s)", filename);
     __system(tmp);
     FILE *file = fopen(filename, "w");
-    fprintf(file, "%s", string);
-    fclose(file);
+    if( file != NULL) {
+        fprintf(file, "%s", string);
+        fclose(file);
+    }
+}
+
+void write_recovery_version() {
+    if ( is_data_media() ) {
+        write_string_to_file("/sdcard/0/clockworkmod/.recovery_version",EXPAND(RECOVERY_VERSION) "\n" EXPAND(TARGET_DEVICE));
+    }
+    write_string_to_file("/sdcard/clockworkmod/.recovery_version",EXPAND(RECOVERY_VERSION) "\n" EXPAND(TARGET_DEVICE));
 }
 
 void
@@ -153,6 +162,7 @@ void show_install_update_menu()
             }
             case ITEM_CHOOSE_ZIP:
                 show_choose_zip_menu("/sdcard/");
+                write_recovery_version();
                 break;
             case ITEM_CHOOSE_ZIP_INT:
                 if (other_sd != NULL)
@@ -1149,16 +1159,20 @@ void show_nandroid_menu()
                         strftime(backup_path, sizeof(backup_path), "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
                     }
                     nandroid_backup(backup_path);
+                    write_recovery_version();
                 }
                 break;
             case 1:
                 show_nandroid_restore_menu("/sdcard");
+                write_recovery_version();
                 break;
             case 2:
                 show_nandroid_delete_menu("/sdcard");
+                write_recovery_version();
                 break;
             case 3:
                 show_nandroid_advanced_restore_menu("/sdcard");
+                write_recovery_version();
                 break;
             case 4:
                 run_dedupe_gc(other_sd);
@@ -1975,6 +1989,7 @@ void create_fstab()
     write_fstab_root("/system", file);
     write_fstab_root("/sdcard", file);
     write_fstab_root("/sd-ext", file);
+    write_fstab_root("/external_sd", file);
     fclose(file);
     LOGI("Completed outputting fstab.\n");
 }
