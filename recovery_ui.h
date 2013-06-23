@@ -78,14 +78,13 @@ int device_wipe_data();
 #define ITEM_APPLY_ZIP       1  // used for installing an update from a zip
 #define ITEM_WIPE_DATA       2
 #define ITEM_WIPE_CACHE      3
-// unused in cwr
-#define ITEM_APPLY_CACHE     4
-#define ITEM_NANDROID        5
-#define ITEM_PARTITION       6
-#define ITEM_ADVANCED        7
-#define ITEM_DEVIL	     8
-#define ITEM_FILEMANAGER     9
-#define ITEM_POWEROFF        10
+#define ITEM_APPLY_CACHE     4 // unused in cwr
+#define ITEM_NANDROID        4
+#define ITEM_PARTITION       5
+#define ITEM_ADVANCED        6
+#define ITEM_DEVIL	     7
+#define ITEM_FILEMANAGER     8
+#define ITEM_POWEROFF        9
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];
