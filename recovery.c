@@ -53,6 +53,7 @@ struct selabel_handle *sehandle = NULL;
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
   { "update_package", required_argument, NULL, 'u' },
+  { "headless", no_argument, NULL, 'h' },
   { "wipe_data", no_argument, NULL, 'w' },
   { "wipe_cache", no_argument, NULL, 'c' },
   { "show_text", no_argument, NULL, 't' },
@@ -60,10 +61,11 @@ static const struct option OPTIONS[] = {
   { NULL, 0, NULL, 0 },
 };
 
+#define LAST_LOG_FILE "/cache/recovery/last_log"
+
 static const char *COMMAND_FILE = "/cache/recovery/command";
 static const char *INTENT_FILE = "/cache/recovery/intent";
 static const char *LOG_FILE = "/cache/recovery/log";
-static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
 static const char *CACHE_ROOT = "/cache";
 static const char *SDCARD_ROOT = "/sdcard";
 static int allow_display_toggle = 0;
@@ -273,6 +275,21 @@ copy_log_file(const char* destination, int append) {
     }
 }
 
+// Rename last_log -> last_log.1 -> last_log.2 -> ... -> last_log.$max
+// Overwrites any existing last_log.$max.
+static void
+rotate_last_logs(int max) {
+    char oldfn[256];
+    char newfn[256];
+
+    int i;
+    for (i = max-1; i >= 0; --i) {
+        snprintf(oldfn, sizeof(oldfn), (i==0) ? LAST_LOG_FILE : (LAST_LOG_FILE ".%d"), i);
+        snprintf(newfn, sizeof(newfn), LAST_LOG_FILE ".%d", i+1);
+        // ignore errors
+        rename(oldfn, newfn);
+    }
+}
 
 // clear the recovery command and prepare to boot a (hopefully working) system,
 // copy our log file to cache as well (for the system to read), and
@@ -638,35 +655,8 @@ update_directory(const char* path, const char* unmount_when_done) {
 
 static void
 wipe_data(int confirm) {
-    if (confirm) {
-        static char** title_headers = NULL;
-
-        if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of all user data?",
-                                "  THIS CAN NOT BE UNDONE.",
-                                "",
-                                NULL };
-            title_headers = prepend_title((const char**)headers);
-        }
-
-        char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " Yes -- delete all user data",   // [7]
-                          " No",
-                          " No",
-                          " No",
-                          NULL };
-
-        int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
-            return;
-        }
-    }
+    if (confirm && !confirm_selection( "Confirm wipe of all user data?", "Yes - Wipe all user data"))
+        return;
 
     ui_print("\n-- Wiping data...\n");
     device_wipe_data();
@@ -678,6 +668,15 @@ wipe_data(int confirm) {
     erase_volume("/sd-ext");
     erase_volume("/sdcard/.android_secure");
     ui_print("Data wipe complete.\n");
+}
+
+static void headless_wait() {
+  ui_show_text(0);
+  char** headers = prepend_title((const char**)MENU_HEADERS);
+  for (;;) {
+    finish_recovery(NULL);
+    get_menu_selection(headers, MENU_ITEMS, 0, 0);
+  }
 }
 
 int ui_menu_level = 1;
@@ -707,7 +706,7 @@ prompt_and_wait() {
         int status;
         switch (chosen_item) {
             case ITEM_REBOOT:
-                poweroff=0;
+                poweroff = 0;
                 return;
 
             case ITEM_WIPE_DATA:
@@ -748,10 +747,6 @@ prompt_and_wait() {
 	   case ITEM_FILEMANAGER:
                 install_zip(FILEMANAGER);
                 break;
-
-            case ITEM_POWEROFF:
-                poweroff = 1;
-                return;
         }
     }
 }
@@ -788,10 +783,19 @@ setup_adbd() {
             check_and_fclose(file_src, key_src);
         }
     }
+    ignore_data_media_workaround(1);
     ensure_path_unmounted("/data");
+    ignore_data_media_workaround(0);
 
     // Trigger (re)start of adb daemon
     property_set("service.adb.root", "1");
+}
+
+// call a clean reboot
+void reboot_main_system(int cmd, int flags, char *arg) {
+    verify_root_and_recovery();
+    finish_recovery(NULL); // sync() in here
+    android_reboot(cmd, flags, arg);
 }
 
 int
@@ -866,6 +870,8 @@ main(int argc, char **argv) {
     load_volume_table();
     process_volumes();
     LOGI("Processing arguments.\n");
+    ensure_path_mounted(LAST_LOG_FILE);
+    rotate_last_logs(5);
     get_args(&argc, &argv);
 
     int previous_runs = 0;
@@ -873,6 +879,7 @@ main(int argc, char **argv) {
     const char *update_package = NULL;
     int wipe_data = 0, wipe_cache = 0;
     int sideload = 0;
+    int headless = 0;
 
     LOGI("Checking arguments.\n");
     int arg;
@@ -886,6 +893,11 @@ main(int argc, char **argv) {
         wipe_data = wipe_cache = 1;
 #endif
         break;
+        case 'h':
+            ui_set_background(BACKGROUND_ICON_CID);
+            ui_show_text(0);
+            headless = 1;
+            break;
         case 'c': wipe_cache = 1; break;
         case 't': ui_show_text(1); break;
         case 'l': sideload = 1; break;
@@ -903,7 +915,7 @@ main(int argc, char **argv) {
 
     if (!sehandle) {
         fprintf(stderr, "Warning: No file_contexts\n");
-        // ui_print("Warning:  No file_contexts\n");
+        ui_print("Warning:  No file_contexts\n");
     }
 
     LOGI("device_recovery_start()\n");
@@ -941,7 +953,9 @@ main(int argc, char **argv) {
         if (status != INSTALL_SUCCESS) ui_print("Installation aborted.\n");
     } else if (wipe_data) {
         if (device_wipe_data()) status = INSTALL_ERROR;
+        ignore_data_media_workaround(1);
         if (erase_volume("/data")) status = INSTALL_ERROR;
+        ignore_data_media_workaround(0);
         if (has_datadata() && erase_volume("/datadata")) status = INSTALL_ERROR;
         if (wipe_cache && erase_volume("/cache")) status = INSTALL_ERROR;
         if (status != INSTALL_SUCCESS) ui_print("Data wipe failed.\n");
@@ -950,7 +964,8 @@ main(int argc, char **argv) {
         if (status != INSTALL_SUCCESS) ui_print("Cache wipe failed.\n");
     } else if (sideload) {
         signature_check_enabled = 0;
-        ui_set_show_text(1);
+        if (!headless)
+          ui_set_show_text(1);
         if (0 == apply_from_adb()) {
             status = INSTALL_SUCCESS;
             ui_set_show_text(0);
@@ -963,8 +978,10 @@ main(int argc, char **argv) {
         signature_check_enabled = 0;
         script_assert_enabled = 0;
         is_user_initiated_recovery = 1;
-        ui_set_show_text(1);
-        ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+        if (!headless) {
+          ui_set_show_text(1);
+          ui_set_background(BACKGROUND_ICON_CLOCKWORK);
+        }
         
         if (extendedcommand_file_exists()) {
             LOGI("Running extendedcommand...\n");
@@ -983,11 +1000,14 @@ main(int argc, char **argv) {
 
     setup_adbd();
 
+    if (headless) {
+      headless_wait();
+    }
     if (status != INSTALL_SUCCESS && !is_user_initiated_recovery) {
         ui_set_show_text(1);
         ui_set_background(BACKGROUND_ICON_ERROR);
     }
-    if (status != INSTALL_SUCCESS || ui_text_visible()) {
+    else if (status != INSTALL_SUCCESS || ui_text_visible()) {
         prompt_and_wait();
     }
 

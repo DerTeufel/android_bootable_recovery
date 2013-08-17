@@ -84,7 +84,6 @@ int device_wipe_data();
 #define ITEM_ADVANCED        6
 #define ITEM_DEVIL	     7
 #define ITEM_FILEMANAGER     8
-#define ITEM_POWEROFF        9
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];
@@ -102,5 +101,8 @@ void
 set_sdcard_update_bootloader_message();
 
 extern int ui_handle_key(int key, int visible);
+
+// call a clean reboot
+void reboot_main_system(int cmd, int flags, char *arg);
 
 #endif
