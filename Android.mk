@@ -15,12 +15,14 @@ LOCAL_SRC_FILES := \
     nandroid.c \
     ../../system/core/toolbox/reboot.c \
     ../../system/core/toolbox/dynarray.c \
+    ../../system/core/toolbox/newfs_msdos.c \
     firmware.c \
     edifyscripting.c \
     prop.c \
     default_recovery_ui.c \
     adb_install.c \
-    verifier.c
+    verifier.c \
+    ../../system/vold/vdc.c
 
 ADDITIONAL_RECOVERY_FILES := $(shell echo $$ADDITIONAL_RECOVERY_FILES)
 LOCAL_SRC_FILES += $(ADDITIONAL_RECOVERY_FILES)
@@ -38,7 +40,7 @@ else
 RECOVERY_NAME := Devil Touch Recovery
 endif
 
-RECOVERY_VERSION := $(RECOVERY_NAME) v6.0.3.7
+RECOVERY_VERSION := $(RECOVERY_NAME) v6.0.4.0
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 RECOVERY_API_VERSION := 2
@@ -53,6 +55,12 @@ LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
 #ifeq ($(BOARD_USE_CUSTOM_RECOVERY_FONT),)
 #  BOARD_USE_CUSTOM_RECOVERY_FONT := \"font_10x18.h\"
 #endif
+
+ifeq ($(ENABLE_LOKI_RECOVERY),true)
+  LOCAL_CFLAGS += -DENABLE_LOKI
+  LOCAL_SRC_FILES += \
+    compact_loki.c
+endif
 
 BOARD_RECOVERY_CHAR_WIDTH := $(shell echo $(BOARD_USE_CUSTOM_RECOVERY_FONT) | cut -d _  -f 2 | cut -d . -f 1 | cut -d x -f 1)
 BOARD_RECOVERY_CHAR_HEIGHT := $(shell echo $(BOARD_USE_CUSTOM_RECOVERY_FONT) | cut -d _  -f 2 | cut -d . -f 1 | cut -d x -f 2)
@@ -69,8 +77,10 @@ $(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
 
 LOCAL_STATIC_LIBRARIES :=
 
-LOCAL_CFLAGS += -DUSE_EXT4
-LOCAL_C_INCLUDES += system/extras/ext4_utils system/core/fs_mgr/include
+LOCAL_CFLAGS += -DUSE_EXT4 -DMINIVOLD
+LOCAL_C_INCLUDES += system/extras/ext4_utils system/core/fs_mgr/include external/fsck_msdos
+LOCAL_C_INCLUDES += system/vold
+
 LOCAL_STATIC_LIBRARIES += libext4_utils_static libz libsparse_static
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
@@ -86,7 +96,14 @@ LOCAL_MODULE_TAGS := eng
 #  LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_KEYMAPPING)
 #endif
 
+LOCAL_STATIC_LIBRARIES += libvoldclient libsdcard libminipigz libfsck_msdos
 LOCAL_STATIC_LIBRARIES += libmake_ext4fs libext4_utils_static libz libsparse_static
+
+ifeq ($(TARGET_USERIMAGES_USE_F2FS), true)
+LOCAL_CFLAGS += -DUSE_F2FS
+LOCAL_STATIC_LIBRARIES += libmake_f2fs libfsck_f2fs libfibmap_f2fs
+endif
+
 LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
 
 LOCAL_STATIC_LIBRARIES += libminizip libminadbd libedify libbusybox libmkyaffs2image libunyaffs liberase_image libdump_image libflash_image
@@ -105,7 +122,11 @@ LOCAL_STATIC_LIBRARIES += libselinux
 
 include $(BUILD_EXECUTABLE)
 
-RECOVERY_LINKS := bu make_ext4fs edify busybox flash_image dump_image mkyaffs2image unyaffs erase_image nandroid reboot volume setprop getprop dedupe minizip
+RECOVERY_LINKS := bu make_ext4fs edify busybox flash_image dump_image mkyaffs2image unyaffs erase_image nandroid reboot volume setprop getprop start stop dedupe minizip setup_adbd fsck_msdos newfs_msdos vdc sdcard pigz
+
+ifeq ($(TARGET_USERIMAGES_USE_F2FS), true)
+RECOVERY_LINKS += mkfs.f2fs fsck.f2fs fibmap.f2fs
+endif
 
 # nc is provided by external/netcat
 RECOVERY_SYMLINKS := $(addprefix $(TARGET_RECOVERY_ROOT_OUT)/sbin/,$(RECOVERY_LINKS))
@@ -179,4 +200,5 @@ include $(commands_recovery_local_path)/updater/Android.mk
 include $(commands_recovery_local_path)/applypatch/Android.mk
 include $(commands_recovery_local_path)/utilities/Android.mk
 include $(commands_recovery_local_path)/su/Android.mk
+include $(commands_recovery_local_path)/voldclient/Android.mk
 commands_recovery_local_path :=
