@@ -226,7 +226,6 @@ static void draw_progress_locked()
     }
 }
 
-<<<<<<< HEAD
 // Draw the virtual keys on the screen.  Does not flip pages.
 // Should only be called with gUpdateMutex locked.
 static void draw_virtualkeys_locked()
