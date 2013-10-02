@@ -1968,7 +1968,7 @@ void show_profile_menu()
 
 /* main menu */
 
-void show_devil_menu()
+int show_devil_menu()
 {
     ensure_path_mounted("/system");
     ensure_path_mounted("/data");
@@ -1988,9 +1988,11 @@ void show_devil_menu()
                             					NULL
     };
 
+    int chosen_item = 0;
+
     for (;;)
     {
-		int chosen_item = get_menu_selection(headers, list, 0, 0);
+	chosen_item = get_menu_selection(headers, list, 0, 0);
         if (chosen_item == GO_BACK)
             break;
 		switch (chosen_item)
@@ -2033,7 +2035,7 @@ void show_devil_menu()
 			}
         }
     }
-    
+    return chosen_item;
 }
 
 /* main menu end */

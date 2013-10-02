@@ -775,6 +775,7 @@ prompt_and_wait() {
 	   case ITEM_FILEMANAGER:
                     ret = install_zip(FILEMANAGER);
                 break;
+	    }
             if (ret == REFRESH) {
                 ret = 0;
                 continue;
