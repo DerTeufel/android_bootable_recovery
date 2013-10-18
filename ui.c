@@ -129,6 +129,10 @@ static void update_screen_locked(void);
 
 #ifdef BOARD_TOUCH_RECOVERY
 #include "../../vendor/koush/recovery/touch.c"
+#else
+#ifdef BOARD_RECOVERY_SWIPE
+#include "swipe.c"
+#endif
 #endif
 
 // Return the current time as a double (including fractions of a second).
@@ -468,7 +472,11 @@ static int input_callback(int fd, short revents, void *data)
 
 #ifdef BOARD_TOUCH_RECOVERY
     if (touch_handle_input(fd, ev))
-      return 0;
+        return 0;
+#else
+#ifdef BOARD_RECOVERY_SWIPE
+    swipe_handle_input(fd, &ev);
+#endif
 #endif
 
     if (ev.type == EV_SYN) {
@@ -606,8 +614,7 @@ static int input_callback(int fd, short revents, void *data)
     }
 
     if (ev.value > 0 && device_reboot_now(key_pressed, ev.code)) {
-        vold_unmount_all();
-        android_reboot(ANDROID_RB_RESTART, 0, 0);
+        reboot_main_system(ANDROID_RB_RESTART, 0, 0);
     }
 
     return 0;

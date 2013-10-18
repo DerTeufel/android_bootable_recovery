@@ -847,12 +847,22 @@ static int handle_volume_hotswap(char* label, char* path) {
 }
 
 static int handle_volume_state_changed(char* label, char* path, int state) {
-    if (state == State_Checking ||
-        state == State_Mounted ||
-        state == State_Idle ||
-        state == State_Formatting ||
-        state == State_Shared)
-    ui_print("%s: %s\n", path, volume_state_to_string(state));
+    int log = -1;
+    if (state == State_Checking || state == State_Mounted || state == State_Idle) {
+        // do not ever log to screen mount/unmount events for sdcards
+        if (strncmp(path, "/storage/sdcard", 15) == 0)
+            log = 0;
+        else log = 1;
+    }
+    else if (state == State_Formatting || state == State_Shared) {
+            log = 1;
+    }
+
+    if (log == 0)
+        LOGI("%s: %s\n", path, volume_state_to_string(state));
+    else if (log == 1)
+        ui_print("%s: %s\n", path, volume_state_to_string(state));
+
     return 0;
 }
 
@@ -920,6 +930,16 @@ main(int argc, char **argv) {
     device_ui_init(&ui_parameters);
     ui_init();
     ui_print(EXPAND(RECOVERY_VERSION)"\n");
+
+#ifdef BOARD_RECOVERY_SWIPE
+#ifndef BOARD_TOUCH_RECOVERY
+    //display directions for swipe controls
+    ui_print("Swipe up/down to change selections.\n");
+    ui_print("Swipe to the right for enter.\n");
+    ui_print("Swipe to the left for back.\n");
+#endif
+#endif
+
     load_volume_table();
     process_volumes();
     vold_client_start(&v_callbacks, 0);
@@ -1018,14 +1038,6 @@ main(int argc, char **argv) {
     } else if (wipe_cache) {
         if (wipe_cache && erase_volume("/cache")) status = INSTALL_ERROR;
         if (status != INSTALL_SUCCESS) ui_print("Cache wipe failed.\n");
-    } else if (sideload) {
-        signature_check_enabled = 0;
-        if (!headless)
-            ui_set_show_text(1);
-        if (0 == apply_from_adb()) {
-            status = INSTALL_SUCCESS;
-            ui_set_show_text(0);
-        }
     } else {
         LOGI("Checking for extendedcommand...\n");
         status = INSTALL_ERROR;  // No command specified
@@ -1051,6 +1063,16 @@ main(int argc, char **argv) {
             }
         } else {
             LOGI("Skipping execution of extendedcommand, file not found...\n");
+        }
+    }
+
+    if (sideload) {
+        signature_check_enabled = 0;
+        if (!headless)
+            ui_set_show_text(1);
+        if (0 == apply_from_adb()) {
+            status = INSTALL_SUCCESS;
+            ui_set_show_text(0);
         }
     }
 
